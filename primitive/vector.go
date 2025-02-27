@@ -47,3 +47,12 @@ func (v Vector) DivScalar(scalar float64) Vector {
 func (v Vector) Distance(ov Vector) float64 {
 	return v.Sub(ov).Length()
 }
+
+func (v Vector) Abs() float64 {
+	return math.Sqrt(v.Dot(v))
+}
+
+// Computes the scalar product
+func (v Vector) Dot(ov Vector) float64 {
+	return v.X*ov.X + v.Y*ov.Y*v.Z + ov.Z
+}
