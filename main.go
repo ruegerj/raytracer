@@ -15,8 +15,8 @@ func main() {
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	// renderCircle(img)
-	render3Circles(img)
+	renderCircle(img)
+	// render3Circles(img)
 
 	f, err := os.Create("out/out.jpeg")
 	if err != nil {
@@ -35,15 +35,18 @@ func renderCircle(img *image.RGBA) {
 		Y: float64(height) / 2,
 		Z: 0,
 	}
-	r := 0.9 * min(float64(height), float64(width)) / float64(2)
+	// r := 0.9 * min(float64(height), float64(width)) / float64(2)
+	circle := shape.Circle{
+		Origin: c,
+		Radius: 200,
+		Color:  primitive.ScalarColor{R: 0, G: 0, B: 1},
+	}
 
-	for row := range height {
-		for col := range width {
-			p := primitive.Vector{X: float64(row) / 2, Y: float64(col) / 2, Z: 0}
-			if p.Distance(c) <= r {
-				// if math.Abs(p.Sub(c).Length()) <= r {
-				blue := primitive.ScalarColor{R: 0, G: 0, B: 1}
-				img.Set(col, row, blue.ToRGBA())
+	for y := range height {
+		for x := range width {
+			p := primitive.Vector{X: float64(x), Y: float64(y), Z: 0}
+			if circle.Hits(p) {
+				img.Set(x, y, circle.Color.ToRGBA())
 			}
 		}
 	}
