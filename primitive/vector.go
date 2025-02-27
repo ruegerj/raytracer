@@ -43,3 +43,7 @@ func (v Vector) MulScalar(scalar float64) Vector {
 func (v Vector) DivScalar(scalar float64) Vector {
 	return Vector{v.X / scalar, v.Y / scalar, v.Z / scalar}
 }
+
+func (v Vector) Distance(ov Vector) float64 {
+	return v.Sub(ov).Length()
+}
