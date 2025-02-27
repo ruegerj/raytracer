@@ -2,20 +2,33 @@ package main
 
 import (
 	"image"
-	"image/color"
 	"image/jpeg"
+	"math"
 	"os"
+
+	"github.com/ruegerj/raytracing/primitive"
 )
 
 func main() {
-	const HEIGHT = 400
-	const WIDTH = 600
+	const height = 400
+	const width = 600
 
-	img := image.NewRGBA(image.Rect(0, 0, WIDTH, HEIGHT))
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	for row := 0; row < HEIGHT; row++ {
-		for col := 0; col < WIDTH; col++ {
-			renderCircle(col, row, WIDTH, HEIGHT, img)
+	c := primitive.Vector{
+		X: width / 2,
+		Y: height / 2,
+		Z: 0,
+	}
+	r := 0.9 * min(height, width) / 2
+
+	for row := range height {
+		for col := range width {
+			p := primitive.Vector{X: float64(row) / 2, Y: float64(col) / 2, Z: 0}
+			if math.Abs(p.Sub(c).Length()) <= r {
+				blue := primitive.ScalarColor{R: 0, G: 0, B: 1}
+				img.Set(col, row, blue.ToRGBA())
+			}
 		}
 	}
 
@@ -26,14 +39,4 @@ func main() {
 	defer f.Close()
 	jpeg.Encode(f, img, nil)
 
-}
-
-func renderCircle(x, y, width, height int, img *image.RGBA) {
-	const r = 100
-	cx := x - width/2
-	cy := y - height/2
-
-	if cx*cx+cy*cy <= r*r {
-		img.Set(x, y, color.RGBA{0, 0, 255, 1})
-	}
 }
