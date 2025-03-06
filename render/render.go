@@ -8,6 +8,8 @@ import (
 	"github.com/ruegerj/raytracing/shape"
 )
 
+var light = primitive.Vector{X: 300, Y: 300, Z: 300}
+
 func Do(target shape.Hitable, img *image.RGBA, depth float64) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
@@ -26,10 +28,11 @@ func Do(target shape.Hitable, img *image.RGBA, depth float64) {
 				continue
 			}
 
-			depthScalar := 1 - (hit.Distance*-1)/depth
-			effectiveColor := hit.Element.Color().MulScalar(float32(depthScalar))
+			s := hit.Point.Sub(light).Normalize()
+			shadedColor := hit.Color.MulScalar(hit.Normal.Mul(s).Length())
+			shadedAmbientColor := shadedColor.AddScalar(0.1)
 
-			img.Set(x, y, effectiveColor.ToRGBA())
+			img.Set(x, y, shadedAmbientColor.ToRGBA())
 		}
 	}
 }

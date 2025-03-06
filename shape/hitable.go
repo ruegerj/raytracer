@@ -4,10 +4,11 @@ import "github.com/ruegerj/raytracing/primitive"
 
 type Hit struct {
 	Distance float64
-	Element  Hitable
+	Point    primitive.Vector
+	Normal   primitive.Vector
+	Color    primitive.ScalarColor
 }
 
 type Hitable interface {
-	Color() primitive.ScalarColor
 	Hits(r primitive.Ray) (*Hit, bool)
 }

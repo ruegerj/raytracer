@@ -12,6 +12,10 @@ func (v Vector) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }
 
+func (v Vector) Normalize() Vector {
+	return v.DivScalar(v.Length())
+}
+
 func (v Vector) Add(ov Vector) Vector {
 	return Vector{v.X + ov.X, v.Y + ov.Y, v.Z + ov.Z}
 }
