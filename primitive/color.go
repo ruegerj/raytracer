@@ -20,6 +20,14 @@ func (sc ScalarColor) Add(osc ScalarColor) ScalarColor {
 	return ScalarColor{sc.R + osc.R, sc.G + osc.G, sc.B + osc.B}
 }
 
+func (sc ScalarColor) MulScalar(t float32) ScalarColor {
+	return ScalarColor{
+		R: sc.R * t,
+		G: sc.G * t,
+		B: sc.B * t,
+	}
+}
+
 func FromRGBAToScalar(base color.RGBA) ScalarColor {
 	return ScalarColor{
 		R: float32(base.R) / 255,
