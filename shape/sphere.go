@@ -9,22 +9,26 @@ import (
 type Sphere struct {
 	Center primitive.Vector
 	Radius float64
-	Color  primitive.ScalarColor
+	color  primitive.ScalarColor
 }
 
 func NewSphere(origin primitive.Vector, radius float64, color primitive.ScalarColor) Sphere {
 	return Sphere{
 		Center: origin,
 		Radius: radius,
-		Color:  color,
+		color:  color,
 	}
+}
+
+func (c Sphere) Color() primitive.ScalarColor {
+	return c.color
 }
 
 func (c Sphere) HitsVector(p primitive.Vector) bool {
 	return p.Distance(c.Center) <= c.Radius
 }
 
-func (c Sphere) Hits(r primitive.Ray) (float64, bool) {
+func (c Sphere) Hits(r primitive.Ray) (*Hit, bool) {
 	u := r.Direction
 	v := c.Center.Sub(r.Origin)
 
@@ -35,10 +39,10 @@ func (c Sphere) Hits(r primitive.Ray) (float64, bool) {
 	discriminant := mb*mb - 4*ma*mc
 
 	if discriminant < 0 {
-		return -1, false
+		return nil, false
 	}
 
 	lambda := (-mb - math.Sqrt(discriminant)) / 2 * ma
 
-	return lambda, true
+	return &Hit{Distance: lambda, Element: c}, true
 }
