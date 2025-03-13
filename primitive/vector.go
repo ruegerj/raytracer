@@ -58,5 +58,5 @@ func (v Vector) Abs() float64 {
 
 // Computes the scalar product
 func (v Vector) Dot(ov Vector) float64 {
-	return v.X*ov.X + v.Y*ov.Y*v.Z + ov.Z
+	return v.X*ov.X + v.Y*ov.Y + v.Z*ov.Z
 }
