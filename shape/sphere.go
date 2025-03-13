@@ -28,9 +28,9 @@ func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {
 	u := r.Direction
 	v := s.Center.Sub(r.Origin)
 
-	ma := u.Length() * u.Length()
+	ma := u.Dot(u)
 	mb := 2 * u.Dot(v)
-	mc := v.Length()*v.Length() - s.Radius*s.Radius
+	mc := v.Dot(v) - s.Radius*s.Radius
 
 	discriminant := mb*mb - 4*ma*mc
 

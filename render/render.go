@@ -28,10 +28,15 @@ func Do(target shape.Hitable, img *image.RGBA, depth float64) {
 				continue
 			}
 
-			s := hit.Point.Sub(light).Normalize()
-			shadedColor := hit.Color.MulScalar(hit.Normal.Mul(s).Length())
-			shadedAmbientColor := shadedColor.AddScalar(0.1)
+			s := light.Sub(hit.Normal).Normalize()
 
+			if s.Dot(hit.Normal) < 0 {
+				img.Set(x, y, hit.Color.MulScalar(0.1).ToRGBA())
+				continue
+			}
+
+			shadedColor := hit.Color.MulScalar(s.Dot(hit.Normal))
+			shadedAmbientColor := shadedColor.AddScalar(0.1)
 			img.Set(x, y, shadedAmbientColor.ToRGBA())
 		}
 	}

@@ -33,9 +33,9 @@ func create3dCircleWorld() *shape.World {
 	world := &shape.World{}
 	var radius float64 = 200
 
-	red := shape.NewSphere(primitive.Vector{X: 640, Y: 280, Z: -500}, radius, primitive.ScalarColor{R: 1, G: 0, B: 0})
-	green := shape.NewSphere(primitive.Vector{X: 520, Y: 440, Z: -600}, radius, primitive.ScalarColor{R: 0, G: 1, B: 0})
-	blue := shape.NewSphere(primitive.Vector{X: 760, Y: 440, Z: -700}, radius, primitive.ScalarColor{R: 0, G: 0, B: 1})
+	red := shape.NewSphere(primitive.Vector{X: 640, Y: 280, Z: -50}, radius, primitive.ScalarColor{R: 1, G: 0, B: 0})
+	green := shape.NewSphere(primitive.Vector{X: 520, Y: 440, Z: -100}, radius, primitive.ScalarColor{R: 0, G: 1, B: 0})
+	blue := shape.NewSphere(primitive.Vector{X: 760, Y: 440, Z: -150}, radius, primitive.ScalarColor{R: 0, G: 0, B: 1})
 
 	world.AddAll(red, green, blue)
 
