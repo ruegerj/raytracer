@@ -11,13 +11,13 @@ import (
 )
 
 func main() {
-	const height = 720
-	const width = 1280
+	const height = 1080
+	const width = 1920
 	const depth float64 = 1000
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	world := create3dCircleWorld()
+	world := create3dCircleWorld(img.Bounds().Dx(), img.Bounds().Dy())
 	render.Do(world, img, depth)
 
 	f, err := os.Create("out/out.jpeg")
@@ -29,15 +29,23 @@ func main() {
 
 }
 
-func create3dCircleWorld() *shape.World {
+func create3dCircleWorld(width, height int) *shape.World {
 	world := &shape.World{}
-	var radius float64 = 200
+	var radius float64 = 400
 
-	red := shape.NewSphere(primitive.Vector{X: 640, Y: 280, Z: -50}, radius, primitive.ScalarColor{R: 1, G: 0, B: 0})
-	green := shape.NewSphere(primitive.Vector{X: 520, Y: 440, Z: -100}, radius, primitive.ScalarColor{R: 0, G: 1, B: 0})
-	blue := shape.NewSphere(primitive.Vector{X: 760, Y: 440, Z: -150}, radius, primitive.ScalarColor{R: 0, G: 0, B: 1})
+	aquaSphere := shape.NewSphere(
+		primitive.Vector{X: float64(width) / 2, Y: float64(height) / 2, Z: -200},
+		radius,
+		primitive.ScalarColor{R: 0, G: 1, B: 1},
+	)
+	tr := shape.NewTriangle(
+		primitive.Vector{X: float64(width) / 2, Y: float64(height) / 2, Z: -5},
+		primitive.Vector{X: float64(width) / 2, Y: 0, Z: -200},
+		primitive.Vector{X: 0, Y: 0, Z: -400},
+		primitive.ScalarColor{R: 1, G: 0, B: 0},
+	)
 
-	world.AddAll(red, green, blue)
+	world.AddAll(aquaSphere, tr)
 
 	return world
 }

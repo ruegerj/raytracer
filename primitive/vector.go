@@ -60,3 +60,12 @@ func (v Vector) Abs() float64 {
 func (v Vector) Dot(ov Vector) float64 {
 	return v.X*ov.X + v.Y*ov.Y + v.Z*ov.Z
 }
+
+// Calculate the cross product of two vectors
+func (v Vector) Cross(ov Vector) Vector {
+	return Vector{
+		X: v.Y*ov.Z - v.Z*ov.Y,
+		Y: v.Z*ov.X - v.X*ov.Z,
+		Z: v.X*ov.Y - v.Y*ov.X,
+	}
+}
