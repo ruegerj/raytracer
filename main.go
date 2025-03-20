@@ -31,21 +31,28 @@ func main() {
 
 func create3dCircleWorld(width, height int) *shape.World {
 	world := &shape.World{}
-	var radius float64 = 400
+	var radius float64 = 0.25
 
-	aquaSphere := shape.NewSphere(
-		primitive.Vector{X: float64(width) / 2, Y: float64(height) / 2, Z: -200},
+	redSphere := shape.NewSphere(
+		primitive.Vector{X: -0.575, Y: 0, Z: -1.0},
 		radius,
-		primitive.ScalarColor{R: 0, G: 1, B: 1},
-	)
-	tr := shape.NewTriangle(
-		primitive.Vector{X: float64(width) / 2, Y: float64(height) / 2, Z: -5},
-		primitive.Vector{X: float64(width) / 2, Y: 0, Z: -200},
-		primitive.Vector{X: 0, Y: 0, Z: -400},
 		primitive.ScalarColor{R: 1, G: 0, B: 0},
 	)
+	greenSphere := shape.NewSphere(
+		primitive.Vector{X: 0, Y: 0, Z: -1.0},
+		radius,
+		primitive.ScalarColor{R: 0, G: 1, B: 0},
+	)
+	blueSphere := shape.NewSphere(
+		primitive.Vector{X: 0.575, Y: 0, Z: -1.0},
+		radius,
+		primitive.ScalarColor{R: 0, G: 0, B: 1},
+	)
 
-	world.AddAll(aquaSphere, tr)
+	world.AddAll(redSphere, greenSphere, blueSphere)
 
 	return world
 }
+
+// epsilon: 10^-9
+// start ray: hitpoint + vector to light * epsilon

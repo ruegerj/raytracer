@@ -8,19 +8,16 @@ import (
 	"github.com/ruegerj/raytracing/shape"
 )
 
-var light = primitive.Vector{X: 0, Y: 0, Z: 100}
+var light = primitive.Vector{X: -10, Y: 7, Z: 18}
 
 func Do(target shape.Hitable, img *image.RGBA, depth float64) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
+	cam := NewCamera(width, height, 1)
 
 	for y := range height {
 		for x := range width {
-			r := primitive.Ray{
-				Origin:    primitive.Vector{X: float64(x), Y: float64(y), Z: 0},
-				Direction: primitive.Vector{X: 0, Y: 0, Z: -1},
-			}
-
+			r := cam.RayFrom(x, y)
 			hit, hasHit := target.Hits(r)
 
 			if !hasHit {
