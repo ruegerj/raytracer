@@ -5,12 +5,12 @@ import (
 	"image/color"
 
 	"github.com/ruegerj/raytracing/primitive"
-	"github.com/ruegerj/raytracing/shape"
+	"github.com/ruegerj/raytracing/scene"
 )
 
 var light = primitive.Vector{X: -10, Y: 7, Z: 18}
 
-func Do(target shape.Hitable, img *image.RGBA, depth float64) {
+func Do(target scene.Hitable, img *image.RGBA, depth float64) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
 	cam := NewCamera(width, height, 1)

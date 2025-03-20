@@ -7,7 +7,7 @@ import (
 
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/render"
-	"github.com/ruegerj/raytracing/shape"
+	"github.com/ruegerj/raytracing/scene"
 )
 
 func main() {
@@ -26,24 +26,23 @@ func main() {
 	}
 	defer f.Close()
 	jpeg.Encode(f, img, nil)
-
 }
 
-func create3dCircleWorld(width, height int) *shape.World {
-	world := &shape.World{}
+func create3dCircleWorld(width, height int) *scene.World {
+	world := &scene.World{}
 	var radius float64 = 0.25
 
-	redSphere := shape.NewSphere(
+	redSphere := scene.NewSphere(
 		primitive.Vector{X: -0.575, Y: 0, Z: -1.0},
 		radius,
 		primitive.ScalarColor{R: 1, G: 0, B: 0},
 	)
-	greenSphere := shape.NewSphere(
+	greenSphere := scene.NewSphere(
 		primitive.Vector{X: 0, Y: 0, Z: -1.0},
 		radius,
 		primitive.ScalarColor{R: 0, G: 1, B: 0},
 	)
-	blueSphere := shape.NewSphere(
+	blueSphere := scene.NewSphere(
 		primitive.Vector{X: 0.575, Y: 0, Z: -1.0},
 		radius,
 		primitive.ScalarColor{R: 0, G: 0, B: 1},

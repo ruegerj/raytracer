@@ -1,4 +1,4 @@
-package shape
+package scene
 
 import "github.com/ruegerj/raytracing/primitive"
 

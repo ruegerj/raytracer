@@ -1,4 +1,4 @@
-package shape
+package scene
 
 import (
 	"math"
@@ -6,10 +6,12 @@ import (
 	"github.com/ruegerj/raytracing/primitive"
 )
 
-type World []Hitable
+type World struct {
+	elements []Hitable
+}
 
 func (w *World) Add(elem Hitable) {
-	*w = append(*w, elem)
+	w.elements = append(w.elements, elem)
 }
 
 func (w *World) AddAll(elems ...Hitable) {
@@ -26,7 +28,7 @@ func (w *World) Hits(r primitive.Ray) (*Hit, bool) {
 	var closestHit *Hit = nil
 	closestDist := math.MaxFloat64
 
-	for _, elem := range *w {
+	for _, elem := range w.elements {
 		hit, hits := elem.Hits(r)
 		if !hits {
 			continue
