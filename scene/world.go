@@ -8,6 +8,14 @@ import (
 
 type World struct {
 	elements []Hitable
+	lights   []Light
+}
+
+func NewWorld(elems []Hitable, lights []Light) *World {
+	return &World{
+		elements: elems,
+		lights:   lights,
+	}
 }
 
 func (w *World) Add(elem Hitable) {
@@ -18,6 +26,14 @@ func (w *World) AddAll(elems ...Hitable) {
 	for _, elem := range elems {
 		w.Add(elem)
 	}
+}
+
+func (w *World) Lights() []Light {
+	return w.lights
+}
+
+func (w *World) AddLigh(light Light) {
+	w.lights = append(w.lights, light)
 }
 
 func (w *World) Color() primitive.ScalarColor {

@@ -8,9 +8,7 @@ import (
 	"github.com/ruegerj/raytracing/scene"
 )
 
-var light = primitive.Vector{X: -10, Y: 7, Z: 18}
-
-func Do(target scene.Hitable, img *image.RGBA, depth float64) {
+func Do(world *scene.World, img *image.RGBA, depth float64) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
 	cam := NewCamera(width, height, 1)
@@ -18,23 +16,33 @@ func Do(target scene.Hitable, img *image.RGBA, depth float64) {
 	for y := range height {
 		for x := range width {
 			r := cam.RayFrom(x, y)
-			hit, hasHit := target.Hits(r)
+			hit, hasHit := world.Hits(r)
 
 			if !hasHit {
 				img.Set(x, y, color.Black)
 				continue
 			}
 
-			s := light.Sub(hit.Point).Normalize()
-
-			if s.Dot(hit.Normal) < 0 {
-				img.Set(x, y, hit.Color.MulScalar(0.1).ToRGBA())
-				continue
-			}
-
-			shadedColor := hit.Color.MulScalar(s.Dot(hit.Normal))
-			shadedAmbientColor := shadedColor.AddScalar(0.1)
-			img.Set(x, y, shadedAmbientColor.ToRGBA())
+			c := calcColor(hit, world.Lights()[0], false)
+			img.Set(x, y, c.ToRGBA())
 		}
 	}
+}
+
+func calcColor(hit *scene.Hit, light scene.Light, ambient bool) primitive.ScalarColor {
+	var ambientFactor float64 = 0
+	if ambient {
+		ambientFactor = 0.1
+	}
+
+	s := light.Origin.Sub(hit.Point).Normalize()
+	intersectsLight := s.Dot(hit.Normal) >= 0
+
+	if !intersectsLight {
+		return hit.Color.MulScalar(ambientFactor)
+	}
+
+	ambientColor := hit.Color.AddScalar(ambientFactor)
+	ambientLightColor := ambientColor.Mul(light.Color.MulScalar(float64(light.Intensity)))
+	return ambientLightColor.MulScalar(s.Dot(hit.Normal))
 }
