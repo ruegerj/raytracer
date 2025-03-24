@@ -30,7 +30,7 @@ func main() {
 
 func create3dCircleWorld() *scene.World {
 	light := scene.NewLight(
-		primitive.Vector{X: -10, Y: 7, Z: 18},
+		primitive.Vector{X: -10, Y: 7, Z: 7.5}, // 7, 18
 		primitive.ScalarColor{R: 1, G: 1, B: 1},
 		1.0,
 	)
@@ -57,6 +57,3 @@ func create3dCircleWorld() *scene.World {
 
 	return world
 }
-
-// epsilon: 10^-9
-// start ray: hitpoint + vector to light * epsilon

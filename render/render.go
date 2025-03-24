@@ -1,8 +1,10 @@
 package render
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
@@ -23,26 +25,56 @@ func Do(world *scene.World, img *image.RGBA, depth float64) {
 				continue
 			}
 
-			c := calcColor(hit, world.Lights()[0], false)
+			c := calcColor(hit, world, false)
 			img.Set(x, y, c.ToRGBA())
 		}
 	}
 }
 
-func calcColor(hit *scene.Hit, light scene.Light, ambient bool) primitive.ScalarColor {
+// epsilon: 10^-9
+// start ray: hitpoint + vector to light * epsilon
+func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.ScalarColor {
 	var ambientFactor float64 = 0
 	if ambient {
 		ambientFactor = 0.1
 	}
 
-	s := light.Origin.Sub(hit.Point).Normalize()
-	intersectsLight := s.Dot(hit.Normal) >= 0
+	lightFactors := []float64{}
 
-	if !intersectsLight {
-		return hit.Color.MulScalar(ambientFactor)
+	for _, l := range world.Lights() {
+		lightVec := l.Origin.Sub(hit.Point)
+		s := lightVec.Normalize()
+		lightFactor := s.Dot(hit.Normal)
+
+		if lightFactor < 0 {
+			return hit.Color.MulScalar(ambientFactor)
+		}
+
+		lightRay := primitive.Ray{
+			Origin: hit.Point.Add(lightVec.MulScalar(math.Pow(10, -9))),
+			// Origin:    hit.Point,
+			Direction: lightVec.Normalize(),
+		}
+
+		blockHit, hasBlockHit := world.Hits(lightRay)
+		if hasBlockHit && blockHit.Distance < lightVec.Length() {
+			lightFactor = 0
+		}
+
+		lightFactors = append(lightFactors, lightFactor)
 	}
 
-	ambientColor := hit.Color.AddScalar(ambientFactor)
-	ambientLightColor := ambientColor.Mul(light.Color.MulScalar(float64(light.Intensity)))
-	return ambientLightColor.MulScalar(s.Dot(hit.Normal))
+	avg := avgValue(lightFactors)
+	fmt.Println(avg, lightFactors)
+	shadedColor := hit.Color.MulScalar(avg + ambientFactor)
+	return shadedColor
+}
+
+func avgValue(values []float64) float64 {
+	var sum float64 = 0
+	for _, v := range values {
+		sum += v
+	}
+
+	return sum / float64(len(values))
 }
