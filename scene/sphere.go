@@ -8,11 +8,11 @@ import (
 
 type Sphere struct {
 	Center primitive.Vector
-	Radius float64
+	Radius float32
 	Color  primitive.ScalarColor
 }
 
-func NewSphere(origin primitive.Vector, radius float64, color primitive.ScalarColor) Sphere {
+func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarColor) Sphere {
 	return Sphere{
 		Center: origin,
 		Radius: radius,
@@ -21,16 +21,16 @@ func NewSphere(origin primitive.Vector, radius float64, color primitive.ScalarCo
 }
 
 func (s Sphere) HitsVector(p primitive.Vector) bool {
-	return p.Distance(s.Center) <= s.Radius
+	return p.Distance(s.Center) <= float64(s.Radius)
 }
 
 func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {
 	u := r.Direction
 	v := r.Origin.Sub(s.Center)
 
-	ma := u.Dot(u)
-	mb := 2 * u.Dot(v)
-	mc := v.Dot(v) - s.Radius*s.Radius
+	ma := float64(u.Dot(u))
+	mb := float64(2 * u.Dot(v))
+	mc := float64(v.Dot(v) - s.Radius*s.Radius)
 
 	discriminant := mb*mb - 4*ma*mc
 
@@ -40,11 +40,11 @@ func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {
 
 	lambda := (-mb - math.Sqrt(discriminant)) / 2 * ma
 
-	q := r.Point(lambda)
+	q := r.Point(float32(lambda))
 	n := q.Sub(s.Center).Normalize()
 
 	hit := &Hit{
-		Distance: lambda,
+		Distance: float32(lambda),
 		Point:    q,
 		Normal:   n,
 		Color:    s.Color,

@@ -5,9 +5,9 @@ import (
 )
 
 type ScalarColor struct {
-	R float64
-	G float64
-	B float64
+	R float32
+	G float32
+	B float32
 }
 
 func (sc ScalarColor) ToRGBA() color.RGBA {
@@ -26,7 +26,7 @@ func (sc ScalarColor) Add(osc ScalarColor) ScalarColor {
 	}
 }
 
-func (sc ScalarColor) AddScalar(t float64) ScalarColor {
+func (sc ScalarColor) AddScalar(t float32) ScalarColor {
 	return ScalarColor{
 		R: clamp(sc.R + t),
 		G: clamp(sc.G + t),
@@ -42,7 +42,7 @@ func (sc ScalarColor) Mul(osc ScalarColor) ScalarColor {
 	}
 }
 
-func (sc ScalarColor) MulScalar(t float64) ScalarColor {
+func (sc ScalarColor) MulScalar(t float32) ScalarColor {
 	return ScalarColor{
 		R: clamp(sc.R * t),
 		G: clamp(sc.G * t),
@@ -52,13 +52,13 @@ func (sc ScalarColor) MulScalar(t float64) ScalarColor {
 
 func FromRGBAToScalar(base color.RGBA) ScalarColor {
 	return ScalarColor{
-		R: float64(base.R) / 255,
-		G: float64(base.G) / 255,
-		B: float64(base.B) / 255,
+		R: float32(base.R) / 255,
+		G: float32(base.G) / 255,
+		B: float32(base.B) / 255,
 	}
 }
 
-func clamp(v float64) float64 {
+func clamp(v float32) float32 {
 	if v < 0 {
 		return 0
 	}

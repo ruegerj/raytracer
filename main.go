@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"os"
@@ -14,9 +16,21 @@ func main() {
 	const height = 1080
 	const width = 1920
 
+	pathArg := flag.String("path", "", "path to a .gltf file to import")
+	flag.Parse()
+	if pathArg == nil || *pathArg == "" {
+		fmt.Println("Please provide a valid path...")
+		os.Exit(1)
+	}
+
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	world := create3dCircleWorld()
+	world, err := scene.ImportFromGLTF(*pathArg)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("imported world from: ", *pathArg)
+	// world := create3dCircleWorld()
 	render.Do(world, img)
 
 	f, err := os.Create("out/out.jpeg")
@@ -34,7 +48,7 @@ func create3dCircleWorld() *scene.World {
 		1.0,
 	)
 	world := scene.NewWorld([]scene.Hitable{}, []scene.Light{light})
-	var radius float64 = 0.25
+	var radius float32 = 0.25
 
 	redSphere := scene.NewSphere(
 		primitive.Vector{X: -0.575, Y: 0, Z: -1.0},

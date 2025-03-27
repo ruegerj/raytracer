@@ -44,7 +44,7 @@ func (w *World) Color() primitive.ScalarColor {
 
 func (w *World) Hits(r primitive.Ray, isValidHit ValidHitPredicate) (*Hit, bool) {
 	var closestHit *Hit = nil
-	closestDist := math.MaxFloat64
+	closestDist := float32(math.MaxFloat32)
 
 	for _, elem := range w.elements {
 		hit, hits := elem.Hits(r)

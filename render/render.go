@@ -34,15 +34,15 @@ func Do(world *scene.World, img *image.RGBA) {
 }
 
 func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.ScalarColor {
-	var ambientFactor float64 = 0
+	var ambientFactor float32 = 0
 	if ambient {
 		ambientFactor = 0.1
 	}
 
-	lightFactors := []float64{}
+	lightFactors := []float32{}
 
 	for _, light := range world.Lights() {
-		var lightFactor float64 = 0
+		var lightFactor float32 = 0
 		lightVec := light.Origin.Sub(hit.Point)
 
 		lightRay := primitive.Ray{
@@ -52,7 +52,7 @@ func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.Scala
 
 		isValidShadowHit := func(elemHit *scene.Hit, elem scene.Hitable) bool {
 			isNoSelfIntersection := elemHit.Distance > epsilon && lightRay.Direction.Dot(elemHit.Normal) <= 0
-			isNotBehindLight := math.Abs(elemHit.Distance) < lightVec.Length()
+			isNotBehindLight := math.Abs(float64(elemHit.Distance)) < lightVec.Length()
 			return isNoSelfIntersection && isNotBehindLight
 		}
 		_, hasShadowHit := world.Hits(lightRay, isValidShadowHit)
@@ -69,11 +69,11 @@ func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.Scala
 	return shadedColor
 }
 
-func avgLightFactor(lightFactors []float64) float64 {
-	var sum float64 = 0
+func avgLightFactor(lightFactors []float32) float32 {
+	var sum float32 = 0
 	for _, v := range lightFactors {
 		sum += v
 	}
 
-	return sum / float64(len(lightFactors))
+	return sum / float32(len(lightFactors))
 }

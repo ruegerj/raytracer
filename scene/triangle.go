@@ -5,27 +5,32 @@ import "github.com/ruegerj/raytracing/primitive"
 const epsilon = 0.0000001
 
 type Triangle struct {
-	V0, V1, V2 primitive.Vector
+	V0, V1, V2 Vertex
 	Normal     primitive.Vector
 	Color      primitive.ScalarColor
 }
 
-func NewTriangle(v0, v1, v2 primitive.Vector, color primitive.ScalarColor) Triangle {
+type Vertex struct {
+	Point  primitive.Vector
+	Normal primitive.Vector
+}
+
+func NewTriangle(v0, v1, v2 Vertex, color primitive.ScalarColor) Triangle {
 	triangle := Triangle{
 		V0:    v0,
 		V1:    v1,
 		V2:    v2,
 		Color: color,
 	}
-	triangle.Normal = calcNormal(triangle)
+	triangle.Normal = v0.Normal
 
 	return triangle
 }
 
 // Möller-Trumbore algorithm
 func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
-	edge1 := tr.V1.Sub(tr.V0)
-	edge2 := tr.V2.Sub(tr.V0)
+	edge1 := tr.V1.Point.Sub(tr.V0.Point)
+	edge2 := tr.V2.Point.Sub(tr.V0.Point)
 
 	h := r.Direction.Cross(edge2)
 	a := edge1.Dot(h)
@@ -35,7 +40,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 	}
 
 	f := 1.0 / a
-	s := r.Origin.Sub(tr.V0)
+	s := r.Origin.Sub(tr.V0.Point)
 
 	u := f * s.Dot(h)
 	if u < 0.0 || u > 1.0 {
@@ -63,5 +68,5 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 }
 
 func calcNormal(tr Triangle) primitive.Vector {
-	return tr.V1.Cross(tr.V2).Normalize()
+	return tr.V1.Point.Cross(tr.V2.Point).Normalize()
 }
