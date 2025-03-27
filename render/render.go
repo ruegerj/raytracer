@@ -3,7 +3,6 @@ package render
 import (
 	"image"
 	"image/color"
-	"math"
 
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
@@ -52,7 +51,7 @@ func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.Scala
 
 		isValidShadowHit := func(elemHit *scene.Hit, elem scene.Hitable) bool {
 			isNoSelfIntersection := elemHit.Distance > epsilon && lightRay.Direction.Dot(elemHit.Normal) <= 0
-			isNotBehindLight := math.Abs(float64(elemHit.Distance)) < lightVec.Length()
+			isNotBehindLight := float64(elemHit.Distance) < lightVec.Length()
 			return isNoSelfIntersection && isNotBehindLight
 		}
 		_, hasShadowHit := world.Hits(lightRay, isValidShadowHit)

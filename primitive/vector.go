@@ -10,7 +10,7 @@ var UnitVector = Vector{1, 1, 1}
 
 func (v Vector) Length() float64 {
 	value := v.X*v.X + v.Y*v.Y + v.Z*v.Z
-	return math.Sqrt(float64(value))
+	return math.Abs(math.Sqrt(float64(value)))
 }
 
 func (v Vector) Normalize() Vector {
