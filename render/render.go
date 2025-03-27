@@ -1,7 +1,6 @@
 package render
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"math"
@@ -10,29 +9,30 @@ import (
 	"github.com/ruegerj/raytracing/scene"
 )
 
-func Do(world *scene.World, img *image.RGBA, depth float64) {
+const epsilon = 1e-9
+
+func Do(world *scene.World, img *image.RGBA) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
 	cam := NewCamera(width, height, 1)
+	acceptAnyHit := func(_ *scene.Hit, _ scene.Hitable) bool { return true }
 
 	for y := range height {
 		for x := range width {
 			r := cam.RayFrom(x, y)
-			hit, hasHit := world.Hits(r)
+			hit, hasHit := world.Hits(r, acceptAnyHit)
 
 			if !hasHit {
 				img.Set(x, y, color.Black)
 				continue
 			}
 
-			c := calcColor(hit, world, false)
+			c := calcColor(hit, world, true)
 			img.Set(x, y, c.ToRGBA())
 		}
 	}
 }
 
-// epsilon: 10^-9
-// start ray: hitpoint + vector to light * epsilon
 func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.ScalarColor {
 	var ambientFactor float64 = 0
 	if ambient {
@@ -41,40 +41,39 @@ func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.Scala
 
 	lightFactors := []float64{}
 
-	for _, l := range world.Lights() {
-		lightVec := l.Origin.Sub(hit.Point)
-		s := lightVec.Normalize()
-		lightFactor := s.Dot(hit.Normal)
-
-		if lightFactor < 0 {
-			return hit.Color.MulScalar(ambientFactor)
-		}
+	for _, light := range world.Lights() {
+		var lightFactor float64 = 0
+		lightVec := light.Origin.Sub(hit.Point)
 
 		lightRay := primitive.Ray{
-			Origin: hit.Point.Add(lightVec.MulScalar(math.Pow(10, -9))),
-			// Origin:    hit.Point,
+			Origin:    hit.Point.Add(hit.Normal.MulScalar(epsilon)),
 			Direction: lightVec.Normalize(),
 		}
 
-		blockHit, hasBlockHit := world.Hits(lightRay)
-		if hasBlockHit && blockHit.Distance < lightVec.Length() {
-			lightFactor = 0
+		isValidShadowHit := func(elemHit *scene.Hit, elem scene.Hitable) bool {
+			isNoSelfIntersection := elemHit.Distance > epsilon && lightRay.Direction.Dot(elemHit.Normal) <= 0
+			isNotBehindLight := math.Abs(elemHit.Distance) < lightVec.Length()
+			return isNoSelfIntersection && isNotBehindLight
+		}
+		_, hasShadowHit := world.Hits(lightRay, isValidShadowHit)
+
+		if !hasShadowHit {
+			lightFactor = lightVec.Normalize().Dot(hit.Normal)
 		}
 
 		lightFactors = append(lightFactors, lightFactor)
 	}
 
-	avg := avgValue(lightFactors)
-	fmt.Println(avg, lightFactors)
-	shadedColor := hit.Color.MulScalar(avg + ambientFactor)
+	lightFactor := avgLightFactor(lightFactors)
+	shadedColor := hit.Color.MulScalar(lightFactor + ambientFactor)
 	return shadedColor
 }
 
-func avgValue(values []float64) float64 {
+func avgLightFactor(lightFactors []float64) float64 {
 	var sum float64 = 0
-	for _, v := range values {
+	for _, v := range lightFactors {
 		sum += v
 	}
 
-	return sum / float64(len(values))
+	return sum / float64(len(lightFactors))
 }

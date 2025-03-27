@@ -6,6 +6,8 @@ import (
 	"github.com/ruegerj/raytracing/primitive"
 )
 
+type ValidHitPredicate = func(*Hit, Hitable) bool
+
 type World struct {
 	elements []Hitable
 	lights   []Light
@@ -40,13 +42,13 @@ func (w *World) Color() primitive.ScalarColor {
 	return primitive.ScalarColor{R: 0, G: 0, B: 0}
 }
 
-func (w *World) Hits(r primitive.Ray) (*Hit, bool) {
+func (w *World) Hits(r primitive.Ray, isValidHit ValidHitPredicate) (*Hit, bool) {
 	var closestHit *Hit = nil
 	closestDist := math.MaxFloat64
 
 	for _, elem := range w.elements {
 		hit, hits := elem.Hits(r)
-		if !hits {
+		if !hits || !isValidHit(hit, elem) {
 			continue
 		}
 
