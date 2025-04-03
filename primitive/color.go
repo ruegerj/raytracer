@@ -58,6 +58,14 @@ func FromRGBAToScalar(base color.RGBA) ScalarColor {
 	}
 }
 
+func FromSlice(slice [3]float64) ScalarColor {
+	return ScalarColor{
+		R: clamp(float32(slice[0])),
+		G: clamp(float32(slice[1])),
+		B: clamp(float32(slice[2])),
+	}
+}
+
 func clamp(v float32) float32 {
 	if v < 0 {
 		return 0
