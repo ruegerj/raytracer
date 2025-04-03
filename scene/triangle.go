@@ -58,15 +58,11 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 		return nil, false // Line intersection but not a ray intersection
 	}
 
-	intersection := r.Direction.AddScalar(t).Add(r.Origin)
+	intersection := r.Origin.Add(r.Direction.MulScalar(t))
 	return &Hit{
 		Distance: t,
 		Point:    intersection,
 		Normal:   tr.Normal,
 		Color:    tr.Color,
 	}, true
-}
-
-func calcNormal(tr Triangle) primitive.Vector {
-	return tr.V1.Point.Cross(tr.V2.Point).Normalize()
 }
