@@ -49,7 +49,12 @@ func create3dCircleWorld() *scene.World {
 		primitive.ScalarColor{R: 1, G: 1, B: 1},
 		1.0,
 	)
-	cam := scene.NewCamera(config.WIDTH/config.HEIGHT, config.DEFAULT_FOV, mgl32.Ident4())
+	noTransform := primitive.AffineTransformation{
+		Rotation:    mgl32.Ident3(),
+		Translation: mgl32.Vec3{0, 0, 0},
+	}
+
+	cam := scene.NewCamera(config.WIDTH/config.HEIGHT, config.DEFAULT_FOV, noTransform)
 	world := scene.NewWorld([]scene.Hitable{}, []scene.Light{light}, cam)
 	var radius float32 = 0.25
 

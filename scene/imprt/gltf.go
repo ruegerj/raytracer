@@ -113,7 +113,7 @@ func loadCameras(doc *gltf.Document) ([]scene.Camera, error) {
 		}
 
 		translation := node.TranslationOrDefault()
-		rotation := resolveRotationOrDefaultOf(node)
+		rotation := node.RotationOrDefault()
 		transform := createTransformMatrix(translation, rotation)
 
 		cam := scene.NewCamera(aspectRatio, yFov, transform)
@@ -171,27 +171,21 @@ func createVertex(coords, normals [3]float32) scene.Vertex {
 	}
 }
 
-func createTransformMatrix(translation [3]float64, rotation [4]float64) mgl32.Mat4 {
-	// Convert quaternion (glTF stores it as [x, y, z, w]) to rotation matrix
-	quat := mgl32.Quat{
-		V: mgl32.Vec3{float32(rotation[0]), float32(rotation[1]), float32(rotation[2])},
-		W: float32(rotation[3]),
-	}
-	rotationMat := quat.Mat4()
+func createTransformMatrix(translation [3]float64, rotation [4]float64) primitive.AffineTransformation {
+	rotationMat := mgl32.Ident3()
 
-	translationMat := mgl32.Translate3D(float32(translation[0]), float32(translation[1]), float32(translation[2]))
-
-	return translationMat.Mul4(rotationMat)
-}
-
-func resolveRotationOrDefaultOf(node *gltf.Node) [4]float64 {
-	rotation := node.Rotation
-
-	if isEmptyRotation(rotation) {
-		rotation = [4]float64{0.707, 0, 0, -0.707} // align to -z axis
+	if !isEmptyRotation(rotation) {
+		quat := mgl32.Quat{
+			V: mgl32.Vec3{float32(rotation[0]), float32(rotation[1]), float32(rotation[2])},
+			W: float32(rotation[3]),
+		}.Normalize()
+		rotationMat = quat.Mat4().Mat3()
 	}
 
-	return rotation
+	return primitive.AffineTransformation{
+		Rotation:    rotationMat,
+		Translation: mgl32.Vec3{float32(translation[0]), float32(translation[1]), float32(translation[2])},
+	}
 }
 
 func isEmptyRotation(rotation [4]float64) bool {

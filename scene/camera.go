@@ -15,10 +15,10 @@ type Camera struct {
 	halfHeight    float32
 	meterPerPixel float32
 	focalLength   float32
-	transform     mgl32.Mat4
+	transform     primitive.AffineTransformation
 }
 
-func NewCamera(aspectRatio, yFov float32, transform mgl32.Mat4) Camera {
+func NewCamera(aspectRatio, yFov float32, transform primitive.AffineTransformation) Camera {
 	h := 1 / aspectRatio
 	return Camera{
 		halfWidth:     config.WIDTH / 2,
@@ -33,12 +33,12 @@ func (c Camera) RayFrom(x, y int) primitive.Ray {
 	planeX := (float32(x) - c.halfWidth) * c.meterPerPixel
 	planeY := (c.halfHeight - float32(y)) * c.meterPerPixel
 
-	cameraPos := c.transform.Col(3).Vec3()
-	localDir := primitive.Vector{X: planeX, Y: planeY, Z: -c.focalLength}.Normalize()
+	direction := mgl32.Vec3{planeX, planeY, -c.focalLength}.Normalize()
+	rotatedDirection := c.transform.Rotation.Mul3x1(direction)
 
 	return primitive.Ray{
-		Origin:    vec3ToVector(cameraPos),
-		Direction: localDir,
+		Origin:    vec3ToVector(c.transform.Translation),
+		Direction: vec3ToVector(rotatedDirection).Normalize(),
 	}
 }
 
