@@ -13,12 +13,11 @@ const epsilon = 1e-9
 func Do(world *scene.World, img *image.RGBA) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
-	cam := NewCamera(width, height, 1)
 	acceptAnyHit := func(_ *scene.Hit, _ scene.Hitable) bool { return true }
 
 	for y := range height {
 		for x := range width {
-			r := cam.RayFrom(x, y)
+			r := world.Camera().RayFrom(x, y)
 			hit, hasHit := world.Hits(r, acceptAnyHit)
 
 			if !hasHit {

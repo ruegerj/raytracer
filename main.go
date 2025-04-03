@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"log"
 	"os"
 
+	"github.com/go-gl/mathgl/mgl32"
+	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/render"
 	"github.com/ruegerj/raytracing/scene"
+	"github.com/ruegerj/raytracing/scene/imprt"
 )
 
 func main() {
-	const height = 1080
-	const width = 1920
 
 	pathArg := flag.String("path", "", "path to a .gltf file to import")
 	flag.Parse()
@@ -23,13 +25,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	img := image.NewRGBA(image.Rect(0, 0, int(config.WIDTH), int(config.HEIGHT)))
 
-	world, err := scene.ImportFromGLTF(*pathArg)
+	world, err := imprt.FromGLTF(*pathArg)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("imported world from: ", *pathArg)
+	log.Println("imported world from: ", *pathArg)
 	// world := create3dCircleWorld()
 	render.Do(world, img)
 
@@ -43,11 +45,12 @@ func main() {
 
 func create3dCircleWorld() *scene.World {
 	light := scene.NewLight(
-		primitive.Vector{X: -4, Y: 2, Z: -1.0}, // 7, 18
+		primitive.Vector{X: -3, Y: 2, Z: -1.0}, // 7, 18
 		primitive.ScalarColor{R: 1, G: 1, B: 1},
 		1.0,
 	)
-	world := scene.NewWorld([]scene.Hitable{}, []scene.Light{light})
+	cam := scene.NewCamera(config.WIDTH/config.HEIGHT, config.DEFAULT_FOV, mgl32.Ident4())
+	world := scene.NewWorld([]scene.Hitable{}, []scene.Light{light}, cam)
 	var radius float32 = 0.25
 
 	redSphere := scene.NewSphere(

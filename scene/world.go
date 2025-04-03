@@ -11,13 +11,23 @@ type ValidHitPredicate = func(*Hit, Hitable) bool
 type World struct {
 	elements []Hitable
 	lights   []Light
+	camera   Camera
 }
 
-func NewWorld(elems []Hitable, lights []Light) *World {
+func NewWorld(elems []Hitable, lights []Light, camera Camera) *World {
 	return &World{
 		elements: elems,
 		lights:   lights,
+		camera:   camera,
 	}
+}
+
+func (w *World) Camera() Camera {
+	return w.camera
+}
+
+func (w *World) Lights() []Light {
+	return w.lights
 }
 
 func (w *World) Add(elem Hitable) {
@@ -30,11 +40,7 @@ func (w *World) AddAll(elems ...Hitable) {
 	}
 }
 
-func (w *World) Lights() []Light {
-	return w.lights
-}
-
-func (w *World) AddLigh(light Light) {
+func (w *World) AddLight(light Light) {
 	w.lights = append(w.lights, light)
 }
 
