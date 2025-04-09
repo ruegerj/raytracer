@@ -6,7 +6,7 @@ type Hit struct {
 	Distance float32
 	Point    primitive.Vector
 	Normal   primitive.Vector
-	Color    primitive.ScalarColor
+	Material *primitive.Material
 }
 
 type Hitable interface {

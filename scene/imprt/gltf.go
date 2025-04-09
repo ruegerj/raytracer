@@ -24,7 +24,9 @@ func FromGLTF(path string) (*scene.World, error) {
 		return nil, err
 	}
 
-	triangles, err := loadTriangles(doc)
+	materials := loadMaterials(doc)
+
+	triangles, err := loadTriangles(doc, materials)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +46,7 @@ func FromGLTF(path string) (*scene.World, error) {
 	return world, nil
 }
 
-func loadTriangles(doc *gltf.Document) ([]scene.Hitable, error) {
+func loadTriangles(doc *gltf.Document, materials []*primitive.Material) ([]scene.Hitable, error) {
 	triangles := make([]scene.Hitable, 0)
 	for _, node := range doc.Nodes {
 		if node.Mesh == nil {
@@ -71,6 +73,8 @@ func loadTriangles(doc *gltf.Document) ([]scene.Hitable, error) {
 				return nil, err
 			}
 
+			material := materials[*prim.Material]
+
 			for i := 0; i < len(indices); i += 3 {
 				p0 := positions[indices[i]]
 				p1 := positions[indices[i+1]]
@@ -83,7 +87,7 @@ func loadTriangles(doc *gltf.Document) ([]scene.Hitable, error) {
 					createVertex(p0, n0),
 					createVertex(p1, n1),
 					createVertex(p2, n2),
-					defaultColor,
+					material,
 				)
 
 				triangles = append(triangles, triangle)
@@ -162,6 +166,27 @@ func loadLightSources(doc *gltf.Document) ([]scene.Light, error) {
 	}
 
 	return lightSources, nil
+}
+
+func loadMaterials(doc *gltf.Document) []*primitive.Material {
+	materials := make([]*primitive.Material, len(doc.Materials))
+
+	for i, m := range doc.Materials {
+		color := [4]float64{1, 1, 1}
+		if m.PBRMetallicRoughness != nil {
+			color = m.PBRMetallicRoughness.BaseColorFactorOrDefault()
+		}
+
+		mat := primitive.NewMaterial(
+			primitive.ScalarColor{
+				R: float32(color[0]),
+				G: float32(color[1]),
+				B: float32(color[2]),
+			})
+		materials[i] = mat
+	}
+
+	return materials
 }
 
 func createVertex(coords, normals [3]float32) scene.Vertex {

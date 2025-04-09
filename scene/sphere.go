@@ -7,16 +7,16 @@ import (
 )
 
 type Sphere struct {
-	Center primitive.Vector
-	Radius float32
-	Color  primitive.ScalarColor
+	Center   primitive.Vector
+	Radius   float32
+	Material *primitive.Material
 }
 
 func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarColor) Sphere {
 	return Sphere{
-		Center: origin,
-		Radius: radius,
-		Color:  color,
+		Center:   origin,
+		Radius:   radius,
+		Material: primitive.NewMaterial(color),
 	}
 }
 
@@ -47,7 +47,7 @@ func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {
 		Distance: float32(lambda),
 		Point:    q,
 		Normal:   n,
-		Color:    s.Color,
+		Material: s.Material,
 	}
 
 	return hit, true

@@ -7,7 +7,7 @@ const epsilon = 0.0000001
 type Triangle struct {
 	V0, V1, V2 Vertex
 	Normal     primitive.Vector
-	Color      primitive.ScalarColor
+	Material   *primitive.Material
 }
 
 type Vertex struct {
@@ -15,12 +15,12 @@ type Vertex struct {
 	Normal primitive.Vector
 }
 
-func NewTriangle(v0, v1, v2 Vertex, color primitive.ScalarColor) Triangle {
+func NewTriangle(v0, v1, v2 Vertex, material *primitive.Material) Triangle {
 	triangle := Triangle{
-		V0:    v0,
-		V1:    v1,
-		V2:    v2,
-		Color: color,
+		V0:       v0,
+		V1:       v1,
+		V2:       v2,
+		Material: material,
 	}
 	triangle.Normal = v0.Normal
 
@@ -63,6 +63,6 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 		Distance: t,
 		Point:    intersection,
 		Normal:   tr.Normal,
-		Color:    tr.Color,
+		Material: tr.Material,
 	}, true
 }

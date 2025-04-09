@@ -79,7 +79,7 @@ func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.Scala
 	}
 
 	lightFactor := avgLightFactor(lightFactors)
-	shadedColor := hit.Color.MulScalar(lightFactor + ambientFactor)
+	shadedColor := hit.Material.Color().MulScalar(lightFactor + ambientFactor)
 	return shadedColor
 }
 
