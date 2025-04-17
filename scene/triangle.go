@@ -1,13 +1,17 @@
 package scene
 
-import "github.com/ruegerj/raytracing/primitive"
+import (
+	"github.com/ruegerj/raytracing/primitive"
+)
 
 const epsilon = 0.0000001
+
+var _ Hitable = (*Triangle)(nil)
 
 type Triangle struct {
 	V0, V1, V2 Vertex
 	Normal     primitive.Vector
-	Material   *primitive.Material
+	Material   Material
 }
 
 type Vertex struct {
@@ -15,7 +19,7 @@ type Vertex struct {
 	Normal primitive.Vector
 }
 
-func NewTriangle(v0, v1, v2 Vertex, material *primitive.Material) Triangle {
+func NewTriangle(v0, v1, v2 Vertex, material Material) Triangle {
 	triangle := Triangle{
 		V0:       v0,
 		V1:       v1,

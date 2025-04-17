@@ -30,24 +30,6 @@ func (w *World) Lights() []Light {
 	return w.lights
 }
 
-func (w *World) Add(elem Hitable) {
-	w.elements = append(w.elements, elem)
-}
-
-func (w *World) AddAll(elems ...Hitable) {
-	for _, elem := range elems {
-		w.Add(elem)
-	}
-}
-
-func (w *World) AddLight(light Light) {
-	w.lights = append(w.lights, light)
-}
-
-func (w *World) Color() primitive.ScalarColor {
-	return primitive.ScalarColor{R: 0, G: 0, B: 0}
-}
-
 func (w *World) Hits(r primitive.Ray, isValidHit ValidHitPredicate) (*Hit, bool) {
 	var closestHit *Hit = nil
 	closestDist := float32(math.MaxFloat32)

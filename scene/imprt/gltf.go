@@ -10,8 +10,6 @@ import (
 	"github.com/ruegerj/raytracing/scene"
 )
 
-// TODO: import from glTF
-var defaultColor = primitive.ScalarColor{R: 0, G: 1, B: 1}
 var defaultLight = scene.Light{
 	Origin:    primitive.Vector{X: -2.5, Y: 3, Z: 2},
 	Color:     primitive.ScalarColor{R: 1, G: 1, B: 1},
@@ -46,7 +44,7 @@ func FromGLTF(path string) (*scene.World, error) {
 	return world, nil
 }
 
-func loadTriangles(doc *gltf.Document, materials []*primitive.Material) ([]scene.Hitable, error) {
+func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Hitable, error) {
 	triangles := make([]scene.Hitable, 0)
 	for _, node := range doc.Nodes {
 		if node.Mesh == nil {
@@ -168,22 +166,31 @@ func loadLightSources(doc *gltf.Document) ([]scene.Light, error) {
 	return lightSources, nil
 }
 
-func loadMaterials(doc *gltf.Document) []*primitive.Material {
-	materials := make([]*primitive.Material, len(doc.Materials))
+func loadMaterials(doc *gltf.Document) []scene.Material {
+	materials := make([]scene.Material, len(doc.Materials))
 
 	for i, m := range doc.Materials {
+		var roughness float32 = 1.0
+		var metallicFactor float32 = 0
 		color := [4]float64{1, 1, 1}
 		if m.PBRMetallicRoughness != nil {
 			color = m.PBRMetallicRoughness.BaseColorFactorOrDefault()
+			roughness = float32(*m.PBRMetallicRoughness.RoughnessFactor)
+			metallicFactor = float32(m.PBRMetallicRoughness.MetallicFactorOrDefault())
 		}
 
-		mat := primitive.NewMaterial(
-			primitive.ScalarColor{
-				R: float32(color[0]),
-				G: float32(color[1]),
-				B: float32(color[2]),
-			})
-		materials[i] = mat
+		scalarColor := primitive.ScalarColor{
+			R: float32(color[0]),
+			G: float32(color[1]),
+			B: float32(color[2]),
+		}
+
+		if metallicFactor >= 1 {
+			materials[i] = scene.NewMetallic(scalarColor)
+			continue
+		}
+
+		materials[i] = scene.NewPhong(scalarColor, roughness)
 	}
 
 	return materials

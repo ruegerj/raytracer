@@ -6,17 +6,19 @@ import (
 	"github.com/ruegerj/raytracing/primitive"
 )
 
+var _ Hitable = (*Sphere)(nil)
+
 type Sphere struct {
 	Center   primitive.Vector
 	Radius   float32
-	Material *primitive.Material
+	Material Material
 }
 
 func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarColor) Sphere {
 	return Sphere{
 		Center:   origin,
 		Radius:   radius,
-		Material: primitive.NewMaterial(color),
+		Material: NewPhong(color, 1),
 	}
 }
 
