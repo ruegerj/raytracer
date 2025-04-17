@@ -26,6 +26,8 @@ go.work.sum
 
 # generated images
 out/
+.out/
 
 # models
 models/
+.models/

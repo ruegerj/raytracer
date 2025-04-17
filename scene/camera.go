@@ -24,7 +24,7 @@ func NewCamera(aspectRatio, yFov float32, transform primitive.AffineTransformati
 	return Camera{
 		halfWidth:     config.WIDTH / 2,
 		halfHeight:    config.HEIGHT / 2,
-		meterPerPixel: aspectRatio / config.HEIGHT,
+		meterPerPixel: h / config.HEIGHT,
 		focalLength:   calcFocalLenght(h, yFov),
 		transform:     transform,
 	}
