@@ -1,12 +1,19 @@
 package scene
 
 import (
+	"github.com/ruegerj/raytracing/common"
+	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
 
+var _ Scaterable = (Material)(nil)
+
 type Material interface {
+	Scaterable
 	Color() primitive.ScalarColor
 }
+
+var _ Material = (*Phong)(nil)
 
 type Phong struct {
 	color     primitive.ScalarColor
@@ -28,17 +35,73 @@ func (p *Phong) Roughness() float32 {
 	return p.roughness
 }
 
-type Metallic struct {
+func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
+	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
+	reflectionDir := ray.Direction.Reflect(hit.Normal).Normalize()
+
+	for _, light := range world.Lights() {
+		lightVec := light.Origin.Sub(hit.Point)
+		lightDistance := lightVec.Length()
+		lightDir := lightVec.Normalize()
+		lightIntensity := light.Intensity / float32(len(world.Lights()))
+
+		shadowRay := primitive.Ray{
+			Origin:    hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
+			Direction: lightDir,
+		}
+
+		isValidShadowHit := func(elemHit *Hit, elem Hitable) bool {
+			isNoSelfIntersection := elemHit.Distance > config.EPSILON &&
+				shadowRay.Direction.Dot(elemHit.Normal) <= 0
+			isNotBehindLight := elemHit.Distance < lightVec.Length()
+			return isNoSelfIntersection && isNotBehindLight
+		}
+		_, hasShadowHit := world.Hits(shadowRay, isValidShadowHit)
+
+		if !hasShadowHit {
+			continue
+		}
+
+		s := light.Origin.Sub(hit.Point)
+		diffuse := newColor.
+			MulScalar(common.Min(s.Dot(hit.Normal), 0.0)).
+			MulScalar(common.Recip(common.Pow(lightDistance, 2))).
+			Mul(light.Color.MulScalar(lightIntensity))
+
+		specularExp := (1.0 - p.roughness) * 128.0
+		specular := light.Color.
+			MulScalar(1.0 - p.roughness).
+			MulScalar(common.Min(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
+
+		newColor = diffuse.Add(specular)
+	}
+
+	return common.Empty[primitive.Ray](), newColor
+}
+
+var _ Material = (*Metal)(nil)
+
+type Metal struct {
 	color       primitive.ScalarColor
 	metalicness float32
 }
 
-func NewMetallic(color primitive.ScalarColor) *Metallic {
-	return &Metallic{
+func NewMetal(color primitive.ScalarColor) *Metal {
+	return &Metal{
 		color: color,
 	}
 }
 
-func (m *Metallic) Color() primitive.ScalarColor {
+func (m *Metal) Color() primitive.ScalarColor {
 	return m.color
+}
+
+func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
+	reflectionDir := ray.Direction.Reflect(hit.Normal).Normalize()
+	reflectionRay := primitive.Ray{
+		Origin:    hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
+		Direction: reflectionDir,
+	}
+
+	return common.Some(reflectionRay), m.color
 }

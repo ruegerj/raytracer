@@ -23,7 +23,7 @@ func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarCo
 }
 
 func (s Sphere) HitsVector(p primitive.Vector) bool {
-	return p.Distance(s.Center) <= float64(s.Radius)
+	return p.Distance(s.Center) <= s.Radius
 }
 
 func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {

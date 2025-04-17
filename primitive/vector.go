@@ -8,9 +8,9 @@ type Vector struct {
 
 var UnitVector = Vector{1, 1, 1}
 
-func (v Vector) Length() float64 {
+func (v Vector) Length() float32 {
 	value := v.X*v.X + v.Y*v.Y + v.Z*v.Z
-	return math.Abs(math.Sqrt(float64(value)))
+	return float32(math.Abs(math.Sqrt(float64(value))))
 }
 
 func (v Vector) Normalize() Vector {
@@ -49,7 +49,7 @@ func (v Vector) DivScalar(scalar float32) Vector {
 	return Vector{v.X / scalar, v.Y / scalar, v.Z / scalar}
 }
 
-func (v Vector) Distance(ov Vector) float64 {
+func (v Vector) Distance(ov Vector) float32 {
 	return v.Sub(ov).Length()
 }
 
@@ -69,4 +69,8 @@ func (v Vector) Cross(ov Vector) Vector {
 		Y: v.Z*ov.X - v.X*ov.Z,
 		Z: v.X*ov.Y - v.Y*ov.X,
 	}
+}
+
+func (v Vector) Reflect(normal Vector) Vector {
+	return v.Sub(v.Mul(normal).MulScalar(2).Mul(normal))
 }

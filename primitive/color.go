@@ -2,7 +2,11 @@ package primitive
 
 import (
 	"image/color"
+
+	"github.com/ruegerj/raytracing/common"
 )
+
+var BLACK = ScalarColor{0, 0, 0}
 
 type ScalarColor struct {
 	R float32
@@ -47,6 +51,21 @@ func (sc ScalarColor) MulScalar(t float32) ScalarColor {
 		R: clamp(sc.R * t),
 		G: clamp(sc.G * t),
 		B: clamp(sc.B * t),
+	}
+}
+
+func (sc ScalarColor) GammaCorrect() ScalarColor {
+	convert := func(c float32) float32 {
+		if c <= 0.0031308 {
+			return 12.92 * c
+		}
+		return 1.055*common.Pow(c, common.Recip(2.4)) - 0.055
+	}
+
+	return ScalarColor{
+		R: convert(sc.R),
+		G: convert(sc.G),
+		B: convert(sc.B),
 	}
 }
 

@@ -5,17 +5,17 @@ import (
 	"log"
 	"sync"
 
+	"github.com/ruegerj/raytracing/common"
+	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
 )
 
-const epsilon = 1e-9
+var DEFAULT_COLOR = primitive.ScalarColor{R: 0, G: 1, B: 1}
 
 func Do(world *scene.World, img *image.RGBA) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
-	acceptAnyHit := func(_ *scene.Hit, _ scene.Hitable) bool { return true }
-
 	imageBuffer := createImageBuffer(width, height)
 
 	var wg sync.WaitGroup
@@ -26,16 +26,9 @@ func Do(world *scene.World, img *image.RGBA) {
 			defer wg.Done()
 
 			for x := range width {
-				r := world.Camera().RayFrom(x, y)
-				hit, hasHit := world.Hits(r, acceptAnyHit)
-
-				if !hasHit {
-					imageBuffer[y][x] = primitive.ScalarColor{R: 0, G: 0, B: 0}
-					continue
-				}
-
-				c := calcColor(hit, world, true)
-				imageBuffer[y][x] = c
+				ray := world.Camera().RayFrom(x, y)
+				color := trace(ray, config.MAX_DEPTH, world)
+				imageBuffer[y][x] = color.GammaCorrect()
 			}
 		}()
 	}
@@ -43,53 +36,36 @@ func Do(world *scene.World, img *image.RGBA) {
 	wg.Wait()
 
 	exportBufferToImage(imageBuffer, img)
-
 	log.Println("done")
 }
 
-func calcColor(hit *scene.Hit, world *scene.World, ambient bool) primitive.ScalarColor {
-	var ambientFactor float32 = 0
-	if ambient {
-		ambientFactor = 0.1
+func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.ScalarColor {
+	if depth < config.EPSILON {
+		return primitive.BLACK
 	}
 
-	lightFactors := []float32{}
-
-	for _, light := range world.Lights() {
-		var lightFactor float32 = 0
-		lightVec := light.Origin.Sub(hit.Point)
-
-		lightRay := primitive.Ray{
-			Origin:    hit.Point.Add(hit.Normal.MulScalar(epsilon)),
-			Direction: lightVec.Normalize(),
-		}
-
-		isValidShadowHit := func(elemHit *scene.Hit, elem scene.Hitable) bool {
-			isNoSelfIntersection := elemHit.Distance > epsilon && lightRay.Direction.Dot(elemHit.Normal) <= 0
-			isNotBehindLight := float64(elemHit.Distance) < lightVec.Length()
-			return isNoSelfIntersection && isNotBehindLight
-		}
-		_, hasShadowHit := world.Hits(lightRay, isValidShadowHit)
-
-		if !hasShadowHit {
-			lightFactor = lightVec.Normalize().Dot(hit.Normal)
-		}
-
-		lightFactors = append(lightFactors, lightFactor)
+	acceptAnyHit := func(_ *scene.Hit, _ scene.Hitable) bool { return true }
+	hit, hasHit := world.Hits(ray, acceptAnyHit)
+	if !hasHit {
+		return primitive.BLACK
 	}
 
-	lightFactor := avgLightFactor(lightFactors)
-	shadedColor := hit.Material.Color().MulScalar(lightFactor + ambientFactor)
-	return shadedColor
+	if hit.Material == nil {
+		return DEFAULT_COLOR
+	}
+
+	reflectedRay, color := hit.Material.Scatter(ray, hit, world)
+	if reflectedRay.IsEmpty() {
+		return color
+	}
+
+	nextColor := trace(reflectedRay.Get(), depth-1, world)
+	return color.Mul(correctColorForDepth(nextColor, depth))
 }
 
-func avgLightFactor(lightFactors []float32) float32 {
-	var sum float32 = 0
-	for _, v := range lightFactors {
-		sum += v
-	}
-
-	return sum / float32(len(lightFactors))
+func correctColorForDepth(color primitive.ScalarColor, depth float32) primitive.ScalarColor {
+	correctionFactor := common.Pow(config.DEPTH_COLOR_DEGRADING_FACTOR, config.MAX_DEPTH-depth)
+	return color.MulScalar(correctionFactor)
 }
 
 func createImageBuffer(width, height int) [][]primitive.ScalarColor {

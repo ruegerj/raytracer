@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/ruegerj/raytracing/common"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
@@ -19,7 +20,7 @@ type Camera struct {
 }
 
 func NewCamera(aspectRatio, yFov float32, transform primitive.AffineTransformation) Camera {
-	h := 1 / aspectRatio
+	h := common.Recip(aspectRatio)
 	return Camera{
 		halfWidth:     config.WIDTH / 2,
 		halfHeight:    config.HEIGHT / 2,

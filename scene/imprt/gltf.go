@@ -186,7 +186,7 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 		}
 
 		if metallicFactor >= 1 {
-			materials[i] = scene.NewMetallic(scalarColor)
+			materials[i] = scene.NewMetal(scalarColor)
 			continue
 		}
 
