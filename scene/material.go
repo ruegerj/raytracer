@@ -43,7 +43,6 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optio
 		lightVec := light.Origin.Sub(hit.Point)
 		lightDistance := lightVec.Length()
 		lightDir := lightVec.Normalize()
-		lightIntensity := light.Intensity / float32(len(world.Lights()))
 
 		shadowRay := primitive.Ray{
 			Origin:    hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
@@ -61,6 +60,8 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optio
 		if !hasShadowHit {
 			continue
 		}
+
+		lightIntensity := calcDepthBasedLightIntensity(lightDistance)
 
 		s := light.Origin.Sub(hit.Point)
 		diffuse := newColor.
@@ -104,4 +105,12 @@ func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optio
 	}
 
 	return common.Some(reflectionRay), m.color
+}
+
+func calcDepthBasedLightIntensity(distance float32) float32 {
+	intensityFactor := config.DEPTH_LIGHT_A_FACTOR*common.Pow(distance, 2) +
+		config.DEPTH_LIGHT_B_FACTOR*distance +
+		config.DEPTH_LIGHT_C_FACTOR
+
+	return common.Recip(intensityFactor)
 }
