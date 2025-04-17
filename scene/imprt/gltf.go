@@ -158,7 +158,7 @@ func loadLightSources(doc *gltf.Document) ([]scene.Light, error) {
 				Z: float32(lightTranslation[2]),
 			},
 			primitive.FromSlice(*lightData.Color),
-			float32(*lightData.Intensity)/1000,
+			float32(*lightData.Intensity),
 		)
 		lightSources = append(lightSources, light)
 	}
