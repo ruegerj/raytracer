@@ -65,14 +65,14 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optio
 
 		s := light.Origin.Sub(hit.Point)
 		diffuse := p.color.
-			MulScalar(common.Min(s.Dot(hit.Normal), 0.0)).
+			MulScalar(max(s.Dot(hit.Normal), 0.0)).
 			MulScalar(common.Recip(common.Pow(lightDistance, 2))).
 			Mul(light.Color.MulScalar(lightIntensity))
 
 		specularExp := (1.0 - p.roughness) * 128.0
 		specular := light.Color.
 			MulScalar(1.0 - p.roughness).
-			MulScalar(common.Min(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
+			MulScalar(max(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
 
 		newColor = newColor.Add(diffuse.Add(specular))
 	}

@@ -54,6 +54,14 @@ func (sc ScalarColor) MulScalar(t float32) ScalarColor {
 	}
 }
 
+func (sc ScalarColor) DivScalar(t float32) ScalarColor {
+	return ScalarColor{
+		R: clamp(sc.R / t),
+		G: clamp(sc.G / t),
+		B: clamp(sc.B / t),
+	}
+}
+
 func (sc ScalarColor) GammaCorrect() ScalarColor {
 	convert := func(c float32) float32 {
 		if c <= 0.0031308 {
@@ -66,6 +74,22 @@ func (sc ScalarColor) GammaCorrect() ScalarColor {
 		R: convert(sc.R),
 		G: convert(sc.G),
 		B: convert(sc.B),
+	}
+}
+
+func AvgColor(values []ScalarColor) ScalarColor {
+	var sumR, sumG, sumB float32
+	for _, v := range values {
+		sumR += v.R
+		sumG += v.G
+		sumB += v.B
+	}
+
+	colorCount := float32(len(values))
+	return ScalarColor{
+		R: clamp(sumR / colorCount),
+		G: clamp(sumG / colorCount),
+		B: clamp(sumB / colorCount),
 	}
 }
 

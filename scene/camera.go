@@ -21,9 +21,14 @@ type Camera struct {
 
 func NewCamera(aspectRatio, yFov float32, transform primitive.AffineTransformation) Camera {
 	h := common.Recip(aspectRatio)
+	aaSize := float32(min(config.AA_SIZE, 1))
+
+	pixelHeight := config.HEIGHT * aaSize
+	pixelWidth := config.WIDTH * aaSize
+
 	return Camera{
-		halfWidth:     config.WIDTH / 2,
-		halfHeight:    config.HEIGHT / 2,
+		halfWidth:     pixelWidth / 2,
+		halfHeight:    pixelHeight / 2,
 		meterPerPixel: h / config.HEIGHT,
 		focalLength:   calcFocalLenght(h, yFov),
 		transform:     transform,

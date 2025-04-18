@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"image"
 	"log"
 	"sync"
@@ -16,7 +17,9 @@ var DEFAULT_COLOR = primitive.ScalarColor{R: 0, G: 1, B: 1}
 func Do(world *scene.World, img *image.RGBA) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
-	imageBuffer := createImageBuffer(width, height)
+	imageBuffer := make([][]primitive.ScalarColor, height)
+	log.Println(fmt.Sprintf("rendering image: %dx%d", img.Bounds().Dx(), img.Bounds().Dy()))
+	log.Println(fmt.Sprintf("actual rendering (with AA): %dx%d", width*config.AA_SIZE, height*config.AA_SIZE))
 
 	var wg sync.WaitGroup
 	wg.Add(height)
@@ -24,19 +27,37 @@ func Do(world *scene.World, img *image.RGBA) {
 	for y := range height {
 		go func() {
 			defer wg.Done()
-
-			for x := range width {
-				ray := world.Camera().RayFrom(x, y)
-				color := trace(ray, config.MAX_DEPTH, world)
-				imageBuffer[y][x] = color.GammaCorrect()
-			}
+			imageBuffer[y] = renderLine(y, width, world)
 		}()
 	}
 
 	wg.Wait()
 
+	log.Println("traced")
 	exportBufferToImage(imageBuffer, img)
 	log.Println("done")
+}
+
+func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
+	line := make([]primitive.ScalarColor, width)
+	aaSize := min(config.AA_SIZE, 1)
+
+	for x := range width {
+		color := primitive.BLACK
+
+		for xOffset := range aaSize {
+			for yOffset := range aaSize {
+				ray := world.Camera().RayFrom((x*aaSize)+xOffset, (y*aaSize)+yOffset)
+				colorPart := trace(ray, config.MAX_DEPTH, world)
+				color = color.Add(colorPart)
+			}
+		}
+
+		color = color.DivScalar(float32(aaSize) * float32(aaSize)).GammaCorrect()
+		line[x] = color
+	}
+
+	return line
 }
 
 func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.ScalarColor {
@@ -66,15 +87,6 @@ func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.Scala
 func correctColorForDepth(color primitive.ScalarColor, depth float32) primitive.ScalarColor {
 	correctionFactor := common.Pow(config.DEPTH_COLOR_DEGRADING_FACTOR, config.MAX_DEPTH-depth)
 	return color.MulScalar(correctionFactor)
-}
-
-func createImageBuffer(width, height int) [][]primitive.ScalarColor {
-	imageBuffer := make([][]primitive.ScalarColor, height)
-	for y := range imageBuffer {
-		imageBuffer[y] = make([]primitive.ScalarColor, width)
-	}
-
-	return imageBuffer
 }
 
 func exportBufferToImage(imageBuffer [][]primitive.ScalarColor, img *image.RGBA) {

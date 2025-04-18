@@ -2,13 +2,6 @@ package common
 
 import "math"
 
-func Min(value, min float32) float32 {
-	if value < min {
-		return min
-	}
-	return value
-}
-
 func Recip(value float32) float32 {
 	return 1 / value
 }
