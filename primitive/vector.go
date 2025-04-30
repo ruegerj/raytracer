@@ -6,8 +6,6 @@ type Vector struct {
 	X, Y, Z float32
 }
 
-type Vector [3]float32
-
 var UnitVector = Vector{1, 1, 1}
 
 func (v Vector) Length() float32 {
