@@ -42,10 +42,10 @@ func (c Camera) RayFrom(x, y int) primitive.Ray {
 	direction := mgl32.Vec3{planeX, planeY, -c.focalLength}.Normalize()
 	rotatedDirection := c.transform.Rotation.Mul3x1(direction)
 
-	return primitive.Ray{
-		Origin:    vec3ToVector(c.transform.Translation),
-		Direction: vec3ToVector(rotatedDirection).Normalize(),
-	}
+	return primitive.NewRay(
+		vec3ToVector(c.transform.Translation),
+		vec3ToVector(rotatedDirection).Normalize(),
+	)
 }
 
 func calcFocalLenght(height, yFov float32) float32 {

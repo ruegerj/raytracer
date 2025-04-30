@@ -37,21 +37,21 @@ func (p *Phong) Roughness() float32 {
 
 func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
 	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
-	reflectionDir := ray.Direction.Reflect(hit.Normal).Normalize()
+	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 
 	for _, light := range world.Lights() {
 		lightVec := light.Origin.Sub(hit.Point)
 		lightDistance := lightVec.Length()
 		lightDir := lightVec.Normalize()
 
-		shadowRay := primitive.Ray{
-			Origin:    hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
-			Direction: lightDir,
-		}
+		shadowRay := primitive.NewRay(
+			hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
+			lightDir,
+		)
 
 		isValidShadowHit := func(elemHit *Hit, elem Hitable) bool {
 			isNoSelfIntersection := elemHit.Distance > config.EPSILON &&
-				shadowRay.Direction.Dot(elemHit.Normal) <= 0
+				shadowRay.Direction().Dot(elemHit.Normal) <= 0
 			isNotBehindLight := elemHit.Distance < lightVec.Length()
 			return isNoSelfIntersection && isNotBehindLight
 		}
@@ -98,11 +98,11 @@ func (m *Metal) Color() primitive.ScalarColor {
 }
 
 func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
-	reflectionDir := ray.Direction.Reflect(hit.Normal).Normalize()
-	reflectionRay := primitive.Ray{
-		Origin:    hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
-		Direction: reflectionDir,
-	}
+	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
+	reflectionRay := primitive.NewRay(
+		hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
+		reflectionDir,
+	)
 
 	return common.Some(reflectionRay), m.color
 }

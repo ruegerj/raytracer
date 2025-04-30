@@ -36,7 +36,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 	edge1 := tr.V1.Point.Sub(tr.V0.Point)
 	edge2 := tr.V2.Point.Sub(tr.V0.Point)
 
-	h := r.Direction.Cross(edge2)
+	h := r.Direction().Cross(edge2)
 	a := edge1.Dot(h)
 
 	if a > -epsilon && a < epsilon {
@@ -44,7 +44,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 	}
 
 	f := 1.0 / a
-	s := r.Origin.Sub(tr.V0.Point)
+	s := r.Origin().Sub(tr.V0.Point)
 
 	u := f * s.Dot(h)
 	if u < 0.0 || u > 1.0 {
@@ -52,7 +52,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 	}
 
 	q := s.Cross(edge1)
-	v := f * r.Direction.Dot(q)
+	v := f * r.Direction().Dot(q)
 	if v < 0.0 || u+v > 1.0 {
 		return nil, false
 	}
@@ -62,7 +62,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 		return nil, false // Line intersection but not a ray intersection
 	}
 
-	intersection := r.Origin.Add(r.Direction.MulScalar(t))
+	intersection := r.Origin().Add(r.Direction().MulScalar(t))
 	return &Hit{
 		Distance: t,
 		Point:    intersection,

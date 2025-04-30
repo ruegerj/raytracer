@@ -27,8 +27,8 @@ func (s Sphere) HitsVector(p primitive.Vector) bool {
 }
 
 func (s Sphere) Hits(r primitive.Ray) (*Hit, bool) {
-	u := r.Direction
-	v := r.Origin.Sub(s.Center)
+	u := r.Direction()
+	v := r.Origin().Sub(s.Center)
 
 	ma := float64(u.Dot(u))
 	mb := float64(2 * u.Dot(v))

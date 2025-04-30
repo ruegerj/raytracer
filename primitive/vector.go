@@ -6,6 +6,8 @@ type Vector struct {
 	X, Y, Z float32
 }
 
+type Vector [3]float32
+
 var UnitVector = Vector{1, 1, 1}
 
 func (v Vector) Length() float32 {
@@ -15,6 +17,54 @@ func (v Vector) Length() float32 {
 
 func (v Vector) Normalize() Vector {
 	return v.DivScalar(float32(v.Length()))
+}
+
+func (v Vector) Inverse() Vector {
+	return Vector{
+		X: 1.0 / v.X,
+		Y: 1.0 / v.Y,
+		Z: 1.0 / v.Z,
+	}
+}
+
+func (v Vector) Min(ov Vector) Vector {
+	if v.X < ov.X {
+		return v
+	} else if ov.X < v.X {
+		return ov
+	}
+
+	if v.Y < ov.Y {
+		return v
+	} else if ov.Y < v.Y {
+		return ov
+	}
+
+	if v.Z < ov.Z {
+		return v
+	}
+
+	return ov
+}
+
+func (v Vector) Max(ov Vector) Vector {
+	if v.X > ov.X {
+		return v
+	} else if ov.X > v.X {
+		return ov
+	}
+
+	if v.Y > ov.Y {
+		return v
+	} else if ov.Y > v.Y {
+		return ov
+	}
+
+	if v.Z > ov.Z {
+		return v
+	}
+
+	return ov
 }
 
 func (v Vector) Add(ov Vector) Vector {
