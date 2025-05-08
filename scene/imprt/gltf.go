@@ -45,8 +45,8 @@ func FromGLTF(path string) (*scene.World, error) {
 	return world, nil
 }
 
-func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Hitable, error) {
-	triangles := make([]scene.Hitable, 0)
+func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Triangle, error) {
+	triangles := make([]scene.Triangle, 0)
 	for _, node := range doc.Nodes {
 		if node.Mesh == nil {
 			continue

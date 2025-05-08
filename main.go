@@ -21,6 +21,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	log.Printf("importing %s...\n", *pathArg)
 	img := image.NewRGBA(image.Rect(0, 0, int(config.WIDTH), int(config.HEIGHT)))
 
 	world, err := imprt.FromGLTF(*pathArg)

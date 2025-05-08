@@ -65,12 +65,12 @@ func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.Scala
 		return primitive.BLACK
 	}
 
-	acceptAnyHit := func(_ *scene.Hit, _ scene.Hitable) bool { return true }
-	hit, hasHit := world.Hits(ray, acceptAnyHit)
-	if !hasHit {
+	potentialHit := world.Hits(ray)
+	if potentialHit.IsEmpty() {
 		return primitive.BLACK
 	}
 
+	hit := potentialHit.Get()
 	if hit.Material == nil {
 		return DEFAULT_COLOR
 	}
