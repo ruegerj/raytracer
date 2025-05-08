@@ -77,7 +77,10 @@ func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Tria
 				return nil, err
 			}
 
-			material := materials[*prim.Material]
+			var material scene.Material
+			if prim.Material != nil {
+				material = materials[*prim.Material]
+			}
 
 			for i := 0; i < len(indices); i += 3 {
 				triangle := scene.NewTriangle(

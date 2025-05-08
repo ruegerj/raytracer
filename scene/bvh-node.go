@@ -7,22 +7,19 @@ import (
 )
 
 type BvhNode struct {
-	aabb      primitive.AABB
+	aabb      *primitive.AABB
 	leftChild uint
 	firstTri  uint
 	triCount  uint
 }
 
 func NewBvhNode(firstPrim, primCount uint, triangles []Triangle) BvhNode {
-	aabb := primitive.MAX_AABB
+	aabb := primitive.MAX_AABB()
 
 	for _, tri := range triangles {
-		aabb.Minimum = aabb.Minimum.Min(tri.V0.Point)
-		aabb.Minimum = aabb.Minimum.Min(tri.V1.Point)
-		aabb.Minimum = aabb.Minimum.Min(tri.V2.Point)
-		aabb.Maximum = aabb.Maximum.Max(tri.V0.Point)
-		aabb.Maximum = aabb.Maximum.Max(tri.V1.Point)
-		aabb.Maximum = aabb.Maximum.Max(tri.V2.Point)
+		aabb.Grow(tri.V0.Point)
+		aabb.Grow(tri.V1.Point)
+		aabb.Grow(tri.V2.Point)
 	}
 
 	return BvhNode{
@@ -41,9 +38,9 @@ func (n BvhNode) GetOwnTriangles(triangles []Triangle) []Triangle {
 	return triangles[n.firstTri : n.firstTri+n.triCount]
 }
 
-func (n BvhNode) EvaluateSH(axis uint, pos float32, triangles []Triangle) float32 {
-	leftBox := primitive.MAX_AABB
-	rightBox := primitive.MAX_AABB
+func (n BvhNode) EvaluateSAH(axis uint, pos float32, triangles []Triangle) float32 {
+	leftBox := primitive.MAX_AABB()
+	rightBox := primitive.MAX_AABB()
 
 	leftCount := 0
 	rightCount := 0
@@ -64,7 +61,7 @@ func (n BvhNode) EvaluateSH(axis uint, pos float32, triangles []Triangle) float3
 
 	cost := float32(leftCount)*leftBox.Area() + float32(rightCount)*rightBox.Area()
 	if cost <= 0.0 {
-		return math.MaxFloat32
+		return float32(math.Inf(1))
 	}
 
 	return cost

@@ -10,7 +10,7 @@ type ValidHitPredicate = func(*Hit, Hitable) bool
 type World struct {
 	lights []Light
 	camera Camera
-	bvh    Bvh
+	bvh    *Bvh
 }
 
 func NewWorld(triangles []Triangle, lights []Light, camera Camera) *World {

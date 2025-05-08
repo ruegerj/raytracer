@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"fmt"
+	"log"
 	"math"
 
 	"github.com/ruegerj/raytracing/common"
@@ -17,26 +19,28 @@ type Bvh struct {
 	usedNodes uint
 }
 
-func NewBvh(triangles []Triangle) Bvh {
+func NewBvh(triangles []Triangle) *Bvh {
 	root := NewBvhNode(0, uint(len(triangles)), triangles)
 	nodes := []BvhNode{root}
 
-	bvh := Bvh{
+	bvh := &Bvh{
 		nodes:     nodes,
 		triangles: triangles,
 		usedNodes: 1,
 	}
 
+	log.Println("start building bvh...")
 	bvh.Subdivide(ROOT_INDEX)
+	log.Println("bvh log count ", len(bvh.nodes))
 	return bvh
 }
 
-func (b Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
+func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 	node := b.nodes[ROOT_INDEX]
 	stack := [65]BvhNode{node}
 	stackPointer := 0
 
-	var nearestDist float32 = math.MaxFloat32
+	var nearestDist float32 = float32(math.Inf(1))
 	nearestTriangle := optional.None[Triangle]()
 
 	for {
@@ -115,12 +119,12 @@ func (b Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 	return optional.Some(hit)
 }
 
-func (b Bvh) Subdivide(nodeIndex uint) {
-	node := b.nodes[nodeIndex]
+func (b *Bvh) Subdivide(nodeIndex uint) {
+	node := &b.nodes[nodeIndex]
 
 	var bestAxis uint = 3
 	var bestPos float32 = 0.0
-	var bestCost float32 = math.MaxFloat32
+	var bestCost float32 = float32(math.Inf(1))
 
 	for axis := range 3 {
 		boundsMin := node.aabb.Minimum.Axis(uint(axis))
@@ -133,7 +137,7 @@ func (b Bvh) Subdivide(nodeIndex uint) {
 		scale := (boundsMax - boundsMin) / config.BVH_SPACES
 		for i := range config.BVH_SPACES {
 			candidatePos := boundsMin + float32(i+1)*scale
-			cost := node.EvaluateSH(uint(axis), candidatePos, b.triangles)
+			cost := node.EvaluateSAH(uint(axis), candidatePos, b.triangles)
 			if cost < bestCost {
 				bestPos = candidatePos
 				bestAxis = uint(axis)
@@ -147,6 +151,7 @@ func (b Bvh) Subdivide(nodeIndex uint) {
 	parentCost := float32(node.triCount) * parentArea
 
 	if bestCost >= parentCost {
+		fmt.Println("best cost reached")
 		return
 	}
 
@@ -167,6 +172,7 @@ func (b Bvh) Subdivide(nodeIndex uint) {
 
 	leftCount := i - node.firstTri
 	if leftCount == 0 || leftCount == node.triCount {
+		fmt.Println("left full")
 		return
 	}
 
@@ -180,7 +186,7 @@ func (b Bvh) Subdivide(nodeIndex uint) {
 	node.leftChild = leftChildIndex
 	node.triCount = 0
 
-	leftChild := NewBvhNode(firstPrim, primCount, b.triangles)
+	leftChild := NewBvhNode(firstPrim, leftCount, b.triangles)
 	b.nodes = append(b.nodes, leftChild)
 	rightChild := NewBvhNode(i, primCount-leftCount, b.triangles)
 	b.nodes = append(b.nodes, rightChild)

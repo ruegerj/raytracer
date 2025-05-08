@@ -1,18 +1,20 @@
 package primitive
 
-import "math"
+import (
+	"math"
+)
 
 type Vec3 struct {
 	X, Y, Z float32
 }
 
 var UnitVector = Vec3{1, 1, 1}
-var INFINTIY_VEC = Vec3{float32(math.Inf(1)), float32(math.Inf(1)), float32(math.Inf(1))}
+var INFINITIY_VEC = Vec3{float32(math.Inf(1)), float32(math.Inf(1)), float32(math.Inf(1))}
 var NEG_INFINITY_VEC = Vec3{float32(math.Inf(-1)), float32(math.Inf(-1)), float32(math.Inf(-1))}
 
 func (v Vec3) Axis(index uint) float32 {
 	if index > 2 {
-		return math.MaxFloat32
+		return float32(math.Inf(1))
 	}
 
 	if index == 0 {
