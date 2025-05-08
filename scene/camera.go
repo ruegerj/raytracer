@@ -9,7 +9,7 @@ import (
 	"github.com/ruegerj/raytracing/primitive"
 )
 
-var rayDirection = primitive.Vector{X: 0.0, Y: 0.0, Z: -1.0}
+var rayDirection = primitive.Vec3{X: 0.0, Y: 0.0, Z: -1.0}
 
 type Camera struct {
 	halfWidth     float32
@@ -52,6 +52,6 @@ func calcFocalLenght(height, yFov float32) float32 {
 	return (height / 2) / float32(math.Tan(float64(yFov/2)))
 }
 
-func vec3ToVector(v mgl32.Vec3) primitive.Vector {
-	return primitive.Vector{X: v.X(), Y: v.Y(), Z: v.Z()}
+func vec3ToVector(v mgl32.Vec3) primitive.Vec3 {
+	return primitive.Vec3{X: v.X(), Y: v.Y(), Z: v.Z()}
 }

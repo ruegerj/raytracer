@@ -9,12 +9,12 @@ import (
 var _ Hitable = (*Sphere)(nil)
 
 type Sphere struct {
-	Center   primitive.Vector
+	Center   primitive.Vec3
 	Radius   float32
 	Material Material
 }
 
-func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarColor) Sphere {
+func NewSphere(origin primitive.Vec3, radius float32, color primitive.ScalarColor) Sphere {
 	return Sphere{
 		Center:   origin,
 		Radius:   radius,
@@ -22,7 +22,7 @@ func NewSphere(origin primitive.Vector, radius float32, color primitive.ScalarCo
 	}
 }
 
-func (s Sphere) HitsVector(p primitive.Vector) bool {
+func (s Sphere) HitsVector(p primitive.Vec3) bool {
 	return p.Distance(s.Center) <= s.Radius
 }
 

@@ -5,13 +5,14 @@ import (
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/ext/lightspunctual"
 	"github.com/qmuntal/gltf/modeler"
+	"github.com/ruegerj/raytracing/common"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
 )
 
 var defaultLight = scene.Light{
-	Origin:    primitive.Vector{X: -2.5, Y: 3, Z: 2},
+	Origin:    primitive.Vec3{X: -2.5, Y: 3, Z: 2},
 	Color:     primitive.ScalarColor{R: 1, G: 1, B: 1},
 	Intensity: 1,
 }
@@ -56,6 +57,7 @@ func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Hita
 		for _, prim := range mesh.Primitives {
 			posAccessor := doc.Accessors[prim.Attributes["POSITION"]]
 			normalAccessor := doc.Accessors[prim.Attributes["NORMAL"]]
+			texCoordsAccessor := doc.Accessors[prim.Attributes["TEXCOORD_0"]]
 			indicesAccessor := doc.Accessors[*prim.Indices]
 
 			positions, err := modeler.ReadPosition(doc, posAccessor, nil)
@@ -70,21 +72,18 @@ func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Hita
 			if err != nil {
 				return nil, err
 			}
+			texCoords, err := modeler.ReadTextureCoord(doc, texCoordsAccessor, nil)
+			if err != nil {
+				return nil, err
+			}
 
 			material := materials[*prim.Material]
 
 			for i := 0; i < len(indices); i += 3 {
-				p0 := positions[indices[i]]
-				p1 := positions[indices[i+1]]
-				p2 := positions[indices[i+2]]
-				n0 := normals[indices[i]]
-				n1 := normals[indices[i+1]]
-				n2 := normals[indices[i+2]]
-
 				triangle := scene.NewTriangle(
-					createVertex(p0, n0),
-					createVertex(p1, n1),
-					createVertex(p2, n2),
+					createVertex(uint(i), indices, positions, normals, texCoords),
+					createVertex(uint(i+1), indices, positions, normals, texCoords),
+					createVertex(uint(i+2), indices, positions, normals, texCoords),
 					material,
 				)
 
@@ -152,7 +151,7 @@ func loadLightSources(doc *gltf.Document) ([]scene.Light, error) {
 
 		lightTranslation := node.TranslationOrDefault()
 		light := scene.NewLight(
-			primitive.Vector{
+			primitive.Vec3{
 				X: float32(lightTranslation[0]),
 				Y: float32(lightTranslation[1]),
 				Z: float32(lightTranslation[2]),
@@ -196,10 +195,20 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 	return materials
 }
 
-func createVertex(coords, normals [3]float32) scene.Vertex {
+func createVertex(idx uint, indices []uint32, positions, normals [][3]float32, texCoords [][2]float32) scene.Vertex {
+	edgeCoords := positions[indices[idx]]
+	edgeNormals := normals[indices[idx]]
+	uv := common.Empty[primitive.Vec2]()
+
+	if len(texCoords) > int(idx) {
+		uvCoords := texCoords[idx]
+		uv = common.Some(primitive.Vec2{X: uvCoords[0], Y: uvCoords[1]})
+	}
+
 	return scene.Vertex{
-		Point:  primitive.Vector{X: coords[0], Y: coords[1], Z: coords[2]},
-		Normal: primitive.Vector{X: normals[0], Y: normals[1], Z: normals[2]},
+		Point:  primitive.Vec3{X: edgeCoords[0], Y: edgeCoords[1], Z: edgeCoords[2]},
+		Normal: primitive.Vec3{X: edgeNormals[0], Y: edgeNormals[1], Z: edgeNormals[2]}.Normalize(),
+		UV:     uv,
 	}
 }
 

@@ -9,6 +9,8 @@ const DEPTH_LIGHT_C_FACTOR = 0.1
 const AA_SIZE = 1
 const AMBIENT_FACTOR = 0.05
 
+const BVH_SPACES = 50
+
 const HEIGHT float32 = 1080
 const WIDTH float32 = 1920
 const DEFAULT_FOV float32 = .4
