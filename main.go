@@ -8,12 +8,15 @@ import (
 	"log"
 	"os"
 
+	"github.com/pkg/profile"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/render"
 	"github.com/ruegerj/raytracing/scene/imprt"
 )
 
 func main() {
+	defer profile.Start(profile.ProfilePath(".")).Stop()
+
 	pathArg := flag.String("path", "", "path to a .gltf file to import")
 	flag.Parse()
 	if pathArg == nil || *pathArg == "" {

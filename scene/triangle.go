@@ -8,8 +8,6 @@ import (
 const epsilon = 0.0000001
 const centroid_factor = 0.3333333
 
-var _ Hitable = (*Triangle)(nil)
-
 type Triangle struct {
 	V0, V1, V2 Vertex
 	Centroid   primitive.Vec3
@@ -37,7 +35,7 @@ func NewTriangle(v0, v1, v2 Vertex, material Material) Triangle {
 }
 
 // Möller-Trumbore algorithm
-func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
+func (tr Triangle) Hits(r primitive.Ray) optional.Optional[Hit] {
 	edge1 := tr.V1.Point.Sub(tr.V0.Point)
 	edge2 := tr.V2.Point.Sub(tr.V0.Point)
 
@@ -45,7 +43,7 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 	a := edge1.Dot(h)
 
 	if a > -epsilon && a < epsilon {
-		return nil, false // Ray is parallel to the triangle
+		return optional.None[Hit]() // Ray is parallel to the triangle
 	}
 
 	f := 1.0 / a
@@ -53,27 +51,28 @@ func (tr Triangle) Hits(r primitive.Ray) (*Hit, bool) {
 
 	u := f * s.Dot(h)
 	if u < 0.0 || u > 1.0 {
-		return nil, false
+		return optional.None[Hit]()
 	}
 
 	q := s.Cross(edge1)
 	v := f * r.Direction().Dot(q)
 	if v < 0.0 || u+v > 1.0 {
-		return nil, false
+		return optional.None[Hit]()
 	}
 
 	t := f * edge2.Dot(q)
 	if t <= epsilon {
-		return nil, false // Line intersection but not a ray intersection
+		return optional.None[Hit]() // Line intersection but not a ray intersection
 	}
 
 	intersection := r.Origin().Add(r.Direction().MulScalar(t))
-	return &Hit{
+	hit := Hit{
 		Distance: t,
 		Point:    intersection,
 		Normal:   tr.V0.Normal,
 		Material: tr.Material,
-	}, true
+	}
+	return optional.Some(hit)
 }
 
 func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) Hit {

@@ -13,7 +13,3 @@ type Hit struct {
 	FrontFace bool
 	Material  Material
 }
-
-type Hitable interface {
-	Hits(r primitive.Ray) (*Hit, bool)
-}

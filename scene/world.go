@@ -5,8 +5,6 @@ import (
 	"github.com/ruegerj/raytracing/primitive"
 )
 
-type ValidHitPredicate = func(*Hit, Hitable) bool
-
 type World struct {
 	lights []Light
 	camera Camera

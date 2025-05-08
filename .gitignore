@@ -31,3 +31,6 @@ out/
 # models
 models/
 .models/
+
+# profiles
+*.pprof

@@ -38,7 +38,7 @@ func NewBvh(triangles []Triangle) *Bvh {
 
 func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 	node := b.nodes[ROOT_INDEX]
-	stack := [65]BvhNode{node}
+	stack := [64]BvhNode{node}
 	stackPointer := 0
 
 	var nearestDist float32 = float32(math.Inf(1))
@@ -47,11 +47,12 @@ func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 	for {
 		if node.IsLeaf() {
 			for _, tri := range node.GetOwnTriangles(b.triangles) {
-				hit, hasHit := tri.Hits(ray)
-				if !hasHit {
+				potentialHit := tri.Hits(ray)
+				if potentialHit.IsEmpty() {
 					continue
 				}
 
+				hit := potentialHit.Get()
 				if hit.Distance < nearestDist {
 					nearestDist = hit.Distance
 					nearestTriangle = optional.Some(tri)
