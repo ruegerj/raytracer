@@ -1,4 +1,4 @@
-package common
+package optional
 
 type Optional[T any] struct {
 	value    T
@@ -12,7 +12,7 @@ func Some[T any](value T) Optional[T] {
 	}
 }
 
-func Empty[T any]() Optional[T] {
+func None[T any]() Optional[T] {
 	return Optional[T]{hasValue: false}
 }
 

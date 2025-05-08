@@ -2,6 +2,7 @@ package scene
 
 import (
 	"github.com/ruegerj/raytracing/common"
+	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
@@ -35,7 +36,7 @@ func (p *Phong) Roughness() float32 {
 	return p.roughness
 }
 
-func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
+func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
 	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
 	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 
@@ -77,7 +78,7 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optio
 		newColor = newColor.Add(diffuse.Add(specular))
 	}
 
-	return common.Empty[primitive.Ray](), newColor
+	return optional.None[primitive.Ray](), newColor
 }
 
 var _ Material = (*Metal)(nil)
@@ -97,14 +98,14 @@ func (m *Metal) Color() primitive.ScalarColor {
 	return m.color
 }
 
-func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (common.Optional[primitive.Ray], primitive.ScalarColor) {
+func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
 	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 	reflectionRay := primitive.NewRay(
 		hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
 		reflectionDir,
 	)
 
-	return common.Some(reflectionRay), m.color
+	return optional.Some(reflectionRay), m.color
 }
 
 func calcDepthBasedLightIntensity(light Light, distance float32) float32 {

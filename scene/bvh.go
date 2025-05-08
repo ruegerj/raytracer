@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/ruegerj/raytracing/common"
+	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
@@ -30,13 +31,13 @@ func NewBvh(triangles []Triangle) Bvh {
 	return bvh
 }
 
-func (b Bvh) Intersects(ray primitive.Ray) common.Optional[Hit] {
+func (b Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 	node := b.nodes[ROOT_INDEX]
 	stack := [65]BvhNode{node}
 	stackPointer := 0
 
 	var nearestDist float32 = math.MaxFloat32
-	nearestTriangle := common.Empty[Triangle]()
+	nearestTriangle := optional.None[Triangle]()
 
 	for {
 		if node.IsLeaf() {
@@ -48,7 +49,7 @@ func (b Bvh) Intersects(ray primitive.Ray) common.Optional[Hit] {
 
 				if hit.Distance < nearestDist {
 					nearestDist = hit.Distance
-					nearestTriangle = common.Some(tri)
+					nearestTriangle = optional.Some(tri)
 				}
 			}
 
@@ -74,19 +75,19 @@ func (b Bvh) Intersects(ray primitive.Ray) common.Optional[Hit] {
 			dist2 = hit.Get()
 		}
 
-		nearDist := common.Empty[float32]()
-		farDist := common.Empty[float32]()
+		nearDist := optional.None[float32]()
+		farDist := optional.None[float32]()
 		var nearChild, farChild BvhNode
 
 		if dist1 > dist2 {
-			nearDist = common.Some(dist2)
+			nearDist = optional.Some(dist2)
 			nearChild = child2
-			farDist = common.Some(dist1)
+			farDist = optional.Some(dist1)
 			farChild = child1
 		} else {
-			nearDist = common.Some(dist1)
+			nearDist = optional.Some(dist1)
 			nearChild = child1
-			farDist = common.Some(dist2)
+			farDist = optional.Some(dist2)
 			farChild = child2
 		}
 
@@ -107,11 +108,11 @@ func (b Bvh) Intersects(ray primitive.Ray) common.Optional[Hit] {
 	}
 
 	if nearestTriangle.IsEmpty() {
-		return common.Empty[Hit]()
+		return optional.None[Hit]()
 	}
 
 	hit := nearestTriangle.Get().CreateHitFor(ray, nearestDist)
-	return common.Some(hit)
+	return optional.Some(hit)
 }
 
 func (b Bvh) Subdivide(nodeIndex uint) {

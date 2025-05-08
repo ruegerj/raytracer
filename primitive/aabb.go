@@ -1,6 +1,6 @@
 package primitive
 
-import "github.com/ruegerj/raytracing/common"
+import "github.com/ruegerj/raytracing/common/optional"
 
 var MAX_AABB = NewAABB(INFINTIY_VEC, NEG_INFINITY_VEC)
 
@@ -16,7 +16,7 @@ func NewAABB(minVec, maxVec Vec3) AABB {
 	}
 }
 
-func (ab AABB) Hit(ray Ray) common.Optional[float32] {
+func (ab AABB) Hit(ray Ray) optional.Optional[float32] {
 	t1 := (ab.Minimum.X - ray.Origin().X) * ray.DirectionInv().X
 	t2 := (ab.Maximum.X - ray.Origin().X) * ray.DirectionInv().X
 
@@ -36,10 +36,10 @@ func (ab AABB) Hit(ray Ray) common.Optional[float32] {
 	tMax = min(tMax, max(t1, t2))
 
 	if tMax >= max(tMin, 0.0) {
-		return common.Some(tMin)
+		return optional.Some(tMin)
 	}
 
-	return common.Empty[float32]()
+	return optional.None[float32]()
 }
 
 func (ab AABB) Grow(vec Vec3) {
