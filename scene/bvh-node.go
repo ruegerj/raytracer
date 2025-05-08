@@ -7,27 +7,27 @@ import (
 )
 
 type BvhNode struct {
-	aabb      *primitive.AABB
+	aabb      primitive.AABB
 	leftChild uint
 	firstTri  uint
 	triCount  uint
 }
 
 func NewBvhNode(firstPrim, primCount uint, triangles []Triangle) BvhNode {
-	aabb := primitive.MAX_AABB()
-
-	for _, tri := range triangles {
-		aabb.Grow(tri.V0.Point)
-		aabb.Grow(tri.V1.Point)
-		aabb.Grow(tri.V2.Point)
-	}
-
-	return BvhNode{
-		aabb:      aabb,
+	node := BvhNode{
+		aabb:      primitive.MAX_AABB(),
 		leftChild: 0,
 		firstTri:  firstPrim,
 		triCount:  primCount,
 	}
+
+	for _, tri := range node.GetOwnTriangles(triangles) {
+		node.aabb.Grow(tri.V0.Point)
+		node.aabb.Grow(tri.V1.Point)
+		node.aabb.Grow(tri.V2.Point)
+	}
+
+	return node
 }
 
 func (n BvhNode) IsLeaf() bool {
@@ -60,9 +60,9 @@ func (n BvhNode) EvaluateSAH(axis uint, pos float32, triangles []Triangle) float
 	}
 
 	cost := float32(leftCount)*leftBox.Area() + float32(rightCount)*rightBox.Area()
-	if cost <= 0.0 {
-		return float32(math.Inf(1))
+	if cost > 0.0 {
+		return cost
 	}
 
-	return cost
+	return float32(math.Inf(1))
 }

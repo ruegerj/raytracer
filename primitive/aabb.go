@@ -4,7 +4,7 @@ import (
 	"github.com/ruegerj/raytracing/common/optional"
 )
 
-func MAX_AABB() *AABB {
+func MAX_AABB() AABB {
 	return NewAABB(INFINITIY_VEC, NEG_INFINITY_VEC)
 }
 
@@ -13,14 +13,24 @@ type AABB struct {
 	Maximum Vec3
 }
 
-func NewAABB(minVec, maxVec Vec3) *AABB {
-	return &AABB{
+func NewAABB(minVec, maxVec Vec3) AABB {
+	return AABB{
 		Minimum: minVec,
 		Maximum: maxVec,
 	}
 }
 
-func (ab *AABB) Hit(ray Ray) optional.Optional[float32] {
+func (ab *AABB) Grow(vec Vec3) {
+	ab.Minimum = ab.Minimum.Min(vec)
+	ab.Maximum = ab.Maximum.Max(vec)
+}
+
+func (ab AABB) Area() float32 {
+	extent := ab.Maximum.Sub(ab.Minimum)
+	return extent.X*extent.Y + extent.Y*extent.Z + extent.Z*extent.X
+}
+
+func (ab AABB) Hit(ray Ray) optional.Optional[float32] {
 	t1 := (ab.Minimum.X - ray.Origin().X) * ray.DirectionInv().X
 	t2 := (ab.Maximum.X - ray.Origin().X) * ray.DirectionInv().X
 
@@ -44,14 +54,4 @@ func (ab *AABB) Hit(ray Ray) optional.Optional[float32] {
 	}
 
 	return optional.None[float32]()
-}
-
-func (ab *AABB) Grow(vec Vec3) {
-	ab.Minimum = ab.Minimum.Min(vec)
-	ab.Maximum = ab.Maximum.Max(vec)
-}
-
-func (ab *AABB) Area() float32 {
-	extent := ab.Maximum.Sub(ab.Minimum)
-	return extent.X*extent.Y + extent.Y*extent.Z + extent.Z*extent.X
 }

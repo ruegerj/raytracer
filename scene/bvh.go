@@ -32,6 +32,7 @@ func NewBvh(triangles []Triangle) *Bvh {
 	log.Println("start building bvh...")
 	bvh.Subdivide(ROOT_INDEX)
 	log.Println("bvh log count ", len(bvh.nodes))
+
 	return bvh
 }
 
@@ -135,8 +136,8 @@ func (b *Bvh) Subdivide(nodeIndex uint) {
 		}
 
 		scale := (boundsMax - boundsMin) / config.BVH_SPACES
-		for i := range config.BVH_SPACES {
-			candidatePos := boundsMin + float32(i+1)*scale
+		for i := 1; i < config.BVH_SPACES; i++ {
+			candidatePos := boundsMin + float32(i)*scale
 			cost := node.EvaluateSAH(uint(axis), candidatePos, b.triangles)
 			if cost < bestCost {
 				bestPos = candidatePos
@@ -151,7 +152,6 @@ func (b *Bvh) Subdivide(nodeIndex uint) {
 	parentCost := float32(node.triCount) * parentArea
 
 	if bestCost >= parentCost {
-		fmt.Println("best cost reached")
 		return
 	}
 

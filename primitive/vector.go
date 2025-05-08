@@ -13,19 +13,16 @@ var INFINITIY_VEC = Vec3{float32(math.Inf(1)), float32(math.Inf(1)), float32(mat
 var NEG_INFINITY_VEC = Vec3{float32(math.Inf(-1)), float32(math.Inf(-1)), float32(math.Inf(-1))}
 
 func (v Vec3) Axis(index uint) float32 {
-	if index > 2 {
-		return float32(math.Inf(1))
-	}
-
-	if index == 0 {
+	switch index {
+	case 0:
 		return v.X
-	}
-
-	if index == 1 {
+	case 1:
 		return v.Y
+	case 2:
+		return v.Z
+	default:
+		panic("axis index out of range")
 	}
-
-	return v.Z
 }
 
 func (v Vec3) Length() float32 {
@@ -46,43 +43,19 @@ func (v Vec3) Inverse() Vec3 {
 }
 
 func (v Vec3) Min(ov Vec3) Vec3 {
-	if v.X < ov.X {
-		return v
-	} else if ov.X < v.X {
-		return ov
+	return Vec3{
+		X: min(v.X, ov.X),
+		Y: min(v.Y, ov.Y),
+		Z: min(v.Z, ov.Z),
 	}
-
-	if v.Y < ov.Y {
-		return v
-	} else if ov.Y < v.Y {
-		return ov
-	}
-
-	if v.Z < ov.Z {
-		return v
-	}
-
-	return ov
 }
 
 func (v Vec3) Max(ov Vec3) Vec3 {
-	if v.X > ov.X {
-		return v
-	} else if ov.X > v.X {
-		return ov
+	return Vec3{
+		X: max(v.X, ov.X),
+		Y: max(v.Y, ov.Y),
+		Z: max(v.Z, ov.Z),
 	}
-
-	if v.Y > ov.Y {
-		return v
-	} else if ov.Y > v.Y {
-		return ov
-	}
-
-	if v.Z > ov.Z {
-		return v
-	}
-
-	return ov
 }
 
 func (v Vec3) Add(ov Vec3) Vec3 {
