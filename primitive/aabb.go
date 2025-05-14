@@ -1,7 +1,7 @@
 package primitive
 
 import (
-	"github.com/ruegerj/raytracing/common/optional"
+	"github.com/ruegerj/raytracing/common"
 )
 
 func MAX_AABB() AABB {
@@ -30,7 +30,7 @@ func (ab AABB) Area() float32 {
 	return extent.X*extent.Y + extent.Y*extent.Z + extent.Z*extent.X
 }
 
-func (ab AABB) Hit(ray Ray) optional.Optional[float32] {
+func (ab AABB) Hit(ray Ray) float32 {
 	t1 := (ab.Minimum.X - ray.Origin().X) * ray.DirectionInv().X
 	t2 := (ab.Maximum.X - ray.Origin().X) * ray.DirectionInv().X
 
@@ -50,8 +50,8 @@ func (ab AABB) Hit(ray Ray) optional.Optional[float32] {
 	tMax = min(tMax, max(t1, t2))
 
 	if tMax >= max(tMin, 0.0) {
-		return optional.Some(tMin)
+		return tMin
 	}
 
-	return optional.None[float32]()
+	return common.F32_INF
 }

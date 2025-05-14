@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/primitive"
 )
 
@@ -27,6 +26,6 @@ func (w *World) Lights() []Light {
 	return w.lights
 }
 
-func (w *World) Hits(r primitive.Ray) optional.Optional[Hit] {
+func (w *World) Hits(r primitive.Ray) *Hit {
 	return w.bvh.Intersects(r)
 }

@@ -31,10 +31,7 @@ func Do(world *scene.World, img *image.RGBA) {
 	}
 
 	wg.Wait()
-
-	log.Println("traced")
 	exportBufferToImage(imageBuffer, img)
-	log.Println("done")
 }
 
 func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
@@ -58,12 +55,10 @@ func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.Scala
 		return primitive.BLACK
 	}
 
-	potentialHit := world.Hits(ray)
-	if potentialHit.IsEmpty() {
+	hit := world.Hits(ray)
+	if hit == nil {
 		return primitive.BLACK
 	}
-
-	hit := potentialHit.Get()
 	if hit.Material == nil {
 		return DEFAULT_COLOR
 	}

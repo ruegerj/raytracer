@@ -3,10 +3,8 @@ package scene
 import (
 	"fmt"
 	"log"
-	"math"
 
 	"github.com/ruegerj/raytracing/common"
-	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
@@ -36,27 +34,28 @@ func NewBvh(triangles []Triangle) *Bvh {
 	return bvh
 }
 
-func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
-	node := b.nodes[ROOT_INDEX]
-	stack := [64]BvhNode{node}
+func (b *Bvh) Intersects(ray primitive.Ray) *Hit {
+	node := &b.nodes[ROOT_INDEX]
+	stack := [64]*BvhNode{node}
 	stackPointer := 0
 
-	var nearestDist float32 = float32(math.Inf(1))
-	nearestTriangle := optional.None[Triangle]()
+	var nearestDist float32 = common.F32_INF
+	var nearestTriangle *Triangle = nil
 
 	for {
 		if node.IsLeaf() {
-			for _, tri := range node.GetOwnTriangles(b.triangles) {
-				potentialHit := tri.Hits(ray)
-				if potentialHit.IsEmpty() {
+			for i := node.firstTri; i < node.firstTri+node.triCount; i++ {
+				tri := &b.triangles[i]
+				hit := tri.Hits(ray)
+				if hit == nil {
 					continue
 				}
 
-				hit := potentialHit.Get()
 				if hit.Distance < nearestDist {
 					nearestDist = hit.Distance
-					nearestTriangle = optional.Some(tri)
+					nearestTriangle = tri
 				}
+
 			}
 
 			if stackPointer == 0 {
@@ -68,36 +67,25 @@ func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 			continue
 		}
 
-		child1 := b.nodes[node.leftChild]
-		child2 := b.nodes[node.leftChild+1]
+		child1 := &b.nodes[node.leftChild]
+		child2 := &b.nodes[node.leftChild+1]
 
-		dist1 := float32(math.Inf(1))
-		if hit := child1.aabb.Hit(ray); hit.IsPresent() && hit.Get() < nearestDist {
-			dist1 = hit.Get()
+		dist1 := common.F32_INF
+		if hitDist := child1.aabb.Hit(ray); hitDist < nearestDist {
+			dist1 = hitDist
 		}
 
-		dist2 := float32(math.Inf(1))
-		if hit := child2.aabb.Hit(ray); hit.IsPresent() && hit.Get() < nearestDist {
-			dist2 = hit.Get()
+		dist2 := common.F32_INF
+		if hitDist := child2.aabb.Hit(ray); hitDist < nearestDist {
+			dist2 = hitDist
 		}
-
-		nearDist := optional.None[float32]()
-		farDist := optional.None[float32]()
-		var nearChild, farChild BvhNode
 
 		if dist1 > dist2 {
-			nearDist = optional.Some(dist2)
-			nearChild = child2
-			farDist = optional.Some(dist1)
-			farChild = child1
-		} else {
-			nearDist = optional.Some(dist1)
-			nearChild = child1
-			farDist = optional.Some(dist2)
-			farChild = child2
+			dist1, dist2 = dist2, dist1
+			child1, child2 = child2, child1
 		}
 
-		if nearDist.IsEmpty() {
+		if dist1 == common.F32_INF {
 			if stackPointer == 0 {
 				break
 			}
@@ -105,20 +93,20 @@ func (b *Bvh) Intersects(ray primitive.Ray) optional.Optional[Hit] {
 			stackPointer--
 			node = stack[stackPointer]
 		} else {
-			node = nearChild
-			if farDist.IsPresent() {
-				stack[stackPointer] = farChild
+			node = child1
+			if dist2 != common.F32_INF {
+				stack[stackPointer] = child2
 				stackPointer++
 			}
 		}
 	}
 
-	if nearestTriangle.IsEmpty() {
-		return optional.None[Hit]()
+	if nearestTriangle == nil {
+		return nil
 	}
 
-	hit := nearestTriangle.Get().CreateHitFor(ray, nearestDist)
-	return optional.Some(hit)
+	hit := nearestTriangle.CreateHitFor(ray, nearestDist)
+	return hit
 }
 
 func (b *Bvh) Subdivide(nodeIndex uint) {
@@ -126,7 +114,7 @@ func (b *Bvh) Subdivide(nodeIndex uint) {
 
 	var bestAxis uint = 3
 	var bestPos float32 = 0.0
-	var bestCost float32 = float32(math.Inf(1))
+	var bestCost float32 = common.F32_INF
 
 	for axis := range 3 {
 		boundsMin := node.aabb.Minimum.Axis(uint(axis))

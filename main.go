@@ -7,15 +7,17 @@ import (
 	"image/jpeg"
 	"log"
 	"os"
+	"time"
 
-	"github.com/pkg/profile"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/render"
 	"github.com/ruegerj/raytracing/scene/imprt"
 )
 
 func main() {
-	defer profile.Start(profile.ProfilePath(".")).Stop()
+	// profiling:
+	// defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+	// defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
 
 	pathArg := flag.String("path", "", "path to a .gltf file to import")
 	flag.Parse()
@@ -33,7 +35,10 @@ func main() {
 	}
 
 	log.Println("imported world from: ", *pathArg)
+	start := time.Now()
 	render.Do(world, img)
+	end := time.Now()
+	log.Printf("total render time: %dms\n", end.UnixMilli()-start.UnixMilli())
 
 	f, err := os.Create("out/out.jpeg")
 	if err != nil {

@@ -1,8 +1,7 @@
 package scene
 
 import (
-	"math"
-
+	"github.com/ruegerj/raytracing/common"
 	"github.com/ruegerj/raytracing/primitive"
 )
 
@@ -21,7 +20,8 @@ func NewBvhNode(firstPrim, primCount uint, triangles []Triangle) BvhNode {
 		triCount:  primCount,
 	}
 
-	for _, tri := range node.GetOwnTriangles(triangles) {
+	for i := node.firstTri; i < node.firstTri+node.triCount; i++ {
+		tri := triangles[i]
 		node.aabb.Grow(tri.V0.Point)
 		node.aabb.Grow(tri.V1.Point)
 		node.aabb.Grow(tri.V2.Point)
@@ -34,10 +34,6 @@ func (n BvhNode) IsLeaf() bool {
 	return n.triCount > 0
 }
 
-func (n BvhNode) GetOwnTriangles(triangles []Triangle) []Triangle {
-	return triangles[n.firstTri : n.firstTri+n.triCount]
-}
-
 func (n BvhNode) EvaluateSAH(axis uint, pos float32, triangles []Triangle) float32 {
 	leftBox := primitive.MAX_AABB()
 	rightBox := primitive.MAX_AABB()
@@ -45,7 +41,8 @@ func (n BvhNode) EvaluateSAH(axis uint, pos float32, triangles []Triangle) float
 	leftCount := 0
 	rightCount := 0
 
-	for _, tri := range n.GetOwnTriangles(triangles) {
+	for i := n.firstTri; i < n.firstTri+n.triCount; i++ {
+		tri := &triangles[i]
 		if tri.Centroid.Axis(axis) < pos {
 			leftCount++
 			leftBox.Grow(tri.V0.Point)
@@ -64,5 +61,5 @@ func (n BvhNode) EvaluateSAH(axis uint, pos float32, triangles []Triangle) float
 		return cost
 	}
 
-	return float32(math.Inf(1))
+	return common.F32_INF
 }

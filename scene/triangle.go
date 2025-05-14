@@ -35,7 +35,7 @@ func NewTriangle(v0, v1, v2 Vertex, material Material) Triangle {
 }
 
 // Möller-Trumbore algorithm
-func (tr Triangle) Hits(r primitive.Ray) optional.Optional[Hit] {
+func (tr Triangle) Hits(r primitive.Ray) *Hit {
 	edge1 := tr.V1.Point.Sub(tr.V0.Point)
 	edge2 := tr.V2.Point.Sub(tr.V0.Point)
 
@@ -43,7 +43,7 @@ func (tr Triangle) Hits(r primitive.Ray) optional.Optional[Hit] {
 	a := edge1.Dot(h)
 
 	if a > -epsilon && a < epsilon {
-		return optional.None[Hit]() // Ray is parallel to the triangle
+		return nil // Ray is parallel to the triangle
 	}
 
 	f := 1.0 / a
@@ -51,31 +51,30 @@ func (tr Triangle) Hits(r primitive.Ray) optional.Optional[Hit] {
 
 	u := f * s.Dot(h)
 	if u < 0.0 || u > 1.0 {
-		return optional.None[Hit]()
+		return nil
 	}
 
 	q := s.Cross(edge1)
 	v := f * r.Direction().Dot(q)
 	if v < 0.0 || u+v > 1.0 {
-		return optional.None[Hit]()
+		return nil
 	}
 
 	t := f * edge2.Dot(q)
 	if t <= epsilon {
-		return optional.None[Hit]() // Line intersection but not a ray intersection
+		return nil // Line intersection but not a ray intersection
 	}
 
 	intersection := r.Origin().Add(r.Direction().MulScalar(t))
-	hit := Hit{
+	return &Hit{
 		Distance: t,
 		Point:    intersection,
 		Normal:   tr.V0.Normal,
 		Material: tr.Material,
 	}
-	return optional.Some(hit)
 }
 
-func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) Hit {
+func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 	pointVec := ray.Point(dist)
 	barycentric := tr.barycentricCoordinats(pointVec)
 
@@ -102,7 +101,7 @@ func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) Hit {
 		hitsFront = false
 	}
 
-	return Hit{
+	return &Hit{
 		Distance:  dist,
 		Point:     pointVec,
 		Normal:    normal,

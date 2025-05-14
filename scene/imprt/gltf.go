@@ -1,6 +1,9 @@
 package imprt
 
 import (
+	"log"
+	"time"
+
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/ext/lightspunctual"
@@ -40,7 +43,10 @@ func FromGLTF(path string) (*scene.World, error) {
 		return nil, err
 	}
 
+	start := time.Now()
 	world := scene.NewWorld(triangles, lightSources, cameras[0])
+	end := time.Now()
+	log.Printf("bvh build time: %dms\n", end.UnixMilli()-start.UnixMilli())
 
 	return world, nil
 }

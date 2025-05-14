@@ -2,6 +2,8 @@ package common
 
 import "math"
 
+var F32_INF = float32(math.Inf(1))
+
 func Recip(value float32) float32 {
 	return 1 / value
 }

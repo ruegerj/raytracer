@@ -36,7 +36,7 @@ func (p *Phong) Roughness() float32 {
 	return p.roughness
 }
 
-func (p *Phong) Scatter(ray primitive.Ray, hit Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
+func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
 	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
 	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 
@@ -51,7 +51,7 @@ func (p *Phong) Scatter(ray primitive.Ray, hit Hit, world *World) (optional.Opti
 		)
 
 		shadowHit := world.Hits(shadowRay)
-		if shadowHit.IsPresent() {
+		if shadowHit != nil {
 			continue
 		}
 
@@ -91,7 +91,7 @@ func (m *Metal) Color() primitive.ScalarColor {
 	return m.color
 }
 
-func (m *Metal) Scatter(ray primitive.Ray, hit Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
+func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
 	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 	reflectionRay := primitive.NewRay(
 		hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
