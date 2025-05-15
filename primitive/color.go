@@ -38,6 +38,14 @@ func (sc ScalarColor) AddScalar(t float32) ScalarColor {
 	}
 }
 
+func (sc ScalarColor) Sub(osc ScalarColor) ScalarColor {
+	return ScalarColor{
+		R: clamp(sc.R - osc.R),
+		G: clamp(sc.G - osc.G),
+		B: clamp(sc.B - osc.B),
+	}
+}
+
 func (sc ScalarColor) Mul(osc ScalarColor) ScalarColor {
 	return ScalarColor{
 		R: clamp(sc.R * osc.R),

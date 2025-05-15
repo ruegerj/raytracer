@@ -30,8 +30,16 @@ func (v Vec3) Length() float32 {
 	return float32(math.Abs(math.Sqrt(float64(value))))
 }
 
+func (v Vec3) LengthSquared() float32 {
+	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
+}
+
 func (v Vec3) Normalize() Vec3 {
 	return v.DivScalar(float32(v.Length()))
+}
+
+func (v Vec3) Negate() Vec3 {
+	return Vec3{-v.X, -v.Y, -v.Z}
 }
 
 func (v Vec3) Inverse() Vec3 {

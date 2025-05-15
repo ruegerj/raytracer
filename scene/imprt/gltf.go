@@ -187,27 +187,34 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 	materials := make([]scene.Material, len(doc.Materials))
 
 	for i, m := range doc.Materials {
-		var roughness float32 = 1.0
-		var metallicFactor float32 = 0
-		color := [4]float64{1, 1, 1}
-		if m.PBRMetallicRoughness != nil {
-			color = m.PBRMetallicRoughness.BaseColorFactorOrDefault()
-			roughness = float32(*m.PBRMetallicRoughness.RoughnessFactor)
-			metallicFactor = float32(m.PBRMetallicRoughness.MetallicFactorOrDefault())
-		}
-
-		scalarColor := primitive.ScalarColor{
-			R: float32(color[0]),
-			G: float32(color[1]),
-			B: float32(color[2]),
-		}
-
-		if metallicFactor >= 1 {
-			materials[i] = scene.NewMetal(scalarColor)
+		if m.PBRMetallicRoughness == nil {
 			continue
 		}
 
-		materials[i] = scene.NewPhong(scalarColor, roughness)
+		var roughness float32 = 1.0
+		var metallicness float32 = 0
+		color := primitive.ScalarColor{R: 1, G: 1, B: 1}
+		pbr := m.PBRMetallicRoughness
+
+		if pbr.BaseColorFactor != nil && len(pbr.BaseColorFactor) >= 3 {
+			color.R = float32(pbr.BaseColorFactor[0])
+			color.G = float32(pbr.BaseColorFactor[1])
+			color.B = float32(pbr.BaseColorFactor[2])
+		}
+
+		if pbr.MetallicFactor != nil {
+			metallicness = float32(*pbr.MetallicFactor)
+		}
+		if pbr.RoughnessFactor != nil {
+			roughness = float32(*pbr.RoughnessFactor)
+		}
+
+		if metallicness >= 1 {
+			materials[i] = scene.NewMetal(color)
+			continue
+		}
+
+		materials[i] = scene.NewPhong(color, roughness)
 	}
 
 	return materials
