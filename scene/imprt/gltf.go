@@ -61,10 +61,15 @@ func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Tria
 		mesh := doc.Meshes[*node.Mesh]
 
 		for _, prim := range mesh.Primitives {
+
+			indicesAccessor := doc.Accessors[*prim.Indices]
 			posAccessor := doc.Accessors[prim.Attributes["POSITION"]]
 			normalAccessor := doc.Accessors[prim.Attributes["NORMAL"]]
-			texCoordsAccessor := doc.Accessors[prim.Attributes["TEXCOORD_0"]]
-			indicesAccessor := doc.Accessors[*prim.Indices]
+
+			var texCoordsAccessor *gltf.Accessor
+			if texCoordIdy, hasTexCoords := prim.Attributes["TEXCOORD_0"]; hasTexCoords {
+				texCoordsAccessor = doc.Accessors[texCoordIdy]
+			}
 
 			positions, err := modeler.ReadPosition(doc, posAccessor, nil)
 			if err != nil {
@@ -78,9 +83,13 @@ func loadTriangles(doc *gltf.Document, materials []scene.Material) ([]scene.Tria
 			if err != nil {
 				return nil, err
 			}
-			texCoords, err := modeler.ReadTextureCoord(doc, texCoordsAccessor, nil)
-			if err != nil {
-				return nil, err
+
+			texCoords := make([][2]float32, 0)
+			if texCoordsAccessor != nil {
+				texCoords, err = modeler.ReadTextureCoord(doc, texCoordsAccessor, nil)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			var material scene.Material
