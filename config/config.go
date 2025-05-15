@@ -8,9 +8,17 @@ const DEPTH_LIGHT_B_FACTOR = 0.1
 const DEPTH_LIGHT_C_FACTOR = 0.1
 const AMBIENT_FACTOR = 0.05
 
+const FXAA_ENABLED = true
+const FXAA_EDGE_THRESHOLD = 0.125
+const FXAA_EDGE_THRESHOLD_MIN = 0.0312
+const FXAA_SUBPIXEL_QUALITY = 0.75 // subpixel AA quality (0.0 to 1.0)
+const FXAA_SEARCH_STEPS = 16
+const FXAA_SEARCH_ACCELERATION = 1.0 // 1 = enabled
+const FXAA_MAX_SEARCH_STEPS = 64
+
 const BVH_SPACES = 50
 
-const HEIGHT float32 = 1080
-const WIDTH float32 = 1920
+const HEIGHT float32 = 2160
+const WIDTH float32 = 3840
 const DEFAULT_FOV float32 = .4
 const DEFAULT_ASPECT_RATIO float32 = WIDTH / HEIGHT

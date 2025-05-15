@@ -31,6 +31,11 @@ func Do(world *scene.World, img *image.RGBA) {
 	}
 
 	wg.Wait()
+
+	if config.FXAA_ENABLED {
+		imageBuffer = FXAA(imageBuffer)
+	}
+
 	exportBufferToImage(imageBuffer, img)
 }
 
