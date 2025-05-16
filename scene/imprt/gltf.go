@@ -5,7 +5,6 @@ import (
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/ext/lightspunctual"
 	"github.com/qmuntal/gltf/modeler"
-	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
@@ -227,11 +226,11 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 func createVertex(idx uint, indices []uint32, positions, normals [][3]float32, texCoords [][2]float32) scene.Vertex {
 	edgeCoords := positions[indices[idx]]
 	edgeNormals := normals[indices[idx]]
-	uv := optional.None[primitive.Vec2]()
+	var uv *primitive.Vec2
 
 	if len(texCoords) > int(idx) {
 		uvCoords := texCoords[idx]
-		uv = optional.Some(primitive.Vec2{X: uvCoords[0], Y: uvCoords[1]})
+		uv = &primitive.Vec2{X: uvCoords[0], Y: uvCoords[1]}
 	}
 
 	return scene.Vertex{

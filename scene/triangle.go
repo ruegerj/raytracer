@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/primitive"
 )
 
@@ -17,7 +16,7 @@ type Triangle struct {
 type Vertex struct {
 	Point  primitive.Vec3
 	Normal primitive.Vec3
-	UV     optional.Optional[primitive.Vec2]
+	UV     *primitive.Vec2
 }
 
 func NewTriangle(v0, v1, v2 Vertex, material Material) Triangle {
@@ -78,17 +77,17 @@ func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 	pointVec := ray.Point(dist)
 	barycentric := tr.barycentricCoordinats(pointVec)
 
-	uv := optional.None[primitive.Vec2]()
-	if tr.V0.UV.IsPresent() && tr.V1.UV.IsPresent() && tr.V2.UV.IsPresent() {
-		uv0 := tr.V0.UV.Get()
-		uv1 := tr.V1.UV.Get()
-		uv2 := tr.V2.UV.Get()
+	var uv *primitive.Vec2
+	if tr.V0.UV != nil && tr.V1.UV != nil && tr.V2.UV != nil {
+		uv0 := tr.V0.UV
+		uv1 := tr.V1.UV
+		uv2 := tr.V2.UV
 
 		result := uv0.MulScalar(barycentric.X).
 			Add(uv1.MulScalar(barycentric.Y)).
 			Add(uv2.MulScalar(barycentric.Z))
 
-		uv = optional.Some(result)
+		uv = &result
 	}
 
 	normal := tr.V0.Normal.MulScalar(barycentric.X).
