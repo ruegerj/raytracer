@@ -1,14 +1,15 @@
 package config
 
-const EPSILON = 1e-3
+const EPSILON = 1e-5
 const MAX_DEPTH = 5.0
+const BVH_SPACES = 50
+const SAMPLES = 256
+
 const DEPTH_COLOR_DEGRADING_FACTOR = 0.9
 const DEPTH_LIGHT_A_FACTOR = 0.9
 const DEPTH_LIGHT_B_FACTOR = 0.1
 const DEPTH_LIGHT_C_FACTOR = 0.1
 const AMBIENT_FACTOR = 0.05
-
-const BVH_SPACES = 50
 
 const HEIGHT float32 = 1080
 const WIDTH float32 = 1920

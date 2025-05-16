@@ -193,13 +193,13 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 
 		var roughness float32 = 1.0
 		var metallicness float32 = 0
-		color := primitive.ScalarColor{R: 1, G: 1, B: 1}
+		baseColor := primitive.ScalarColor{R: 1, G: 1, B: 1}
 		pbr := m.PBRMetallicRoughness
 
 		if pbr.BaseColorFactor != nil && len(pbr.BaseColorFactor) >= 3 {
-			color.R = float32(pbr.BaseColorFactor[0])
-			color.G = float32(pbr.BaseColorFactor[1])
-			color.B = float32(pbr.BaseColorFactor[2])
+			baseColor.R = float32(pbr.BaseColorFactor[0])
+			baseColor.G = float32(pbr.BaseColorFactor[1])
+			baseColor.B = float32(pbr.BaseColorFactor[2])
 		}
 
 		if pbr.MetallicFactor != nil {
@@ -209,12 +209,22 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 			roughness = float32(*pbr.RoughnessFactor)
 		}
 
-		if metallicness >= 1 {
-			materials[i] = scene.NewMetal(color)
-			continue
+		// TODO: transmission -> glass (extension gltf)
+		var material scene.Material
+		emissiveFactorVec := primitive.Vec3{
+			X: float32(m.EmissiveFactor[0]),
+			Y: float32(m.EmissiveFactor[1]),
+			Z: float32(m.EmissiveFactor[2]),
+		}
+		if emissiveFactorVec.LengthSquared() > 0.0 {
+			material = scene.NewEmissive(primitive.FromSlice(m.EmissiveFactor))
+		} else if metallicness < 1.0 {
+			material = scene.NewDiffuse(baseColor)
+		} else {
+			material = scene.NewMetal(baseColor, roughness)
 		}
 
-		materials[i] = scene.NewPhong(color, roughness)
+		materials[i] = material
 	}
 
 	return materials

@@ -1,110 +1,105 @@
 package scene
 
 import (
+	"math"
+	"math/rand"
+
 	"github.com/ruegerj/raytracing/common"
-	"github.com/ruegerj/raytracing/common/optional"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 )
 
-var _ Scaterable = (Material)(nil)
+const glass_ior float32 = 1.52
 
 type Material interface {
-	Scaterable
-	Color() primitive.ScalarColor
+	Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor)
 }
 
-var _ Material = (*Phong)(nil)
+var _ Material = (*Diffuse)(nil)
 
-type Phong struct {
-	color     primitive.ScalarColor
-	roughness float32
+type Diffuse struct {
+	color primitive.ScalarColor
 }
 
-func NewPhong(color primitive.ScalarColor, roughness float32) *Phong {
-	return &Phong{
-		color:     color,
-		roughness: roughness,
-	}
+func NewDiffuse(color primitive.ScalarColor) *Diffuse {
+	return &Diffuse{color: color}
 }
 
-func (p *Phong) Color() primitive.ScalarColor {
-	return p.color
-}
-
-func (p *Phong) Roughness() float32 {
-	return p.roughness
-}
-
-func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
-	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
-	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
-
-	for _, light := range world.Lights() {
-		lightVec := light.Origin.Sub(hit.Point)
-		lightDistance := lightVec.Length()
-		lightDir := lightVec.Normalize()
-
-		shadowRay := primitive.NewRay(
-			hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
-			lightDir,
-		)
-
-		shadowHit := world.Hits(shadowRay)
-		if shadowHit != nil {
-			continue
-		}
-
-		lightIntensity := calcDepthBasedLightIntensity(light, lightDistance)
-
-		s := light.Origin.Sub(hit.Point)
-		diffuse := p.color.
-			MulScalar(max(s.Dot(hit.Normal), 0.0)).
-			MulScalar(common.Recip(common.Pow(lightDistance, 2))).
-			Mul(light.Color.MulScalar(lightIntensity))
-
-		specularExp := (1.0 - p.roughness) * 128.0
-		specular := light.Color.
-			MulScalar(1.0 - p.roughness).
-			MulScalar(max(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
-
-		newColor = newColor.Add(diffuse.Add(specular))
-	}
-
-	return optional.None[primitive.Ray](), newColor
+func (d *Diffuse) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
+	rayDir := (hit.Normal.Add(primitive.RandomUnitVector())).Normalize()
+	rayOrigin := hit.Point.Add(rayDir.MulScalar(config.EPSILON))
+	return primitive.NewRay(rayOrigin, rayDir), true, d.color
 }
 
 var _ Material = (*Metal)(nil)
 
 type Metal struct {
-	color       primitive.ScalarColor
-	metalicness float32
+	color     primitive.ScalarColor
+	roughness float32
 }
 
-func NewMetal(color primitive.ScalarColor) *Metal {
+func NewMetal(color primitive.ScalarColor, roughness float32) *Metal {
 	return &Metal{
-		color: color,
+		color:     color,
+		roughness: roughness,
 	}
 }
 
-func (m *Metal) Color() primitive.ScalarColor {
-	return m.color
+func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
+	randomReflection := primitive.RandomOnHemisphere(hit.Normal).MulScalar(m.roughness)
+	reflectionDir := ray.Direction().Reflect(hit.Normal).Add(randomReflection).Normalize()
+	reflectionOrigin := hit.Point.Add(reflectionDir.MulScalar(config.EPSILON))
+	return primitive.NewRay(reflectionOrigin, reflectionDir), true, m.color
 }
 
-func (m *Metal) Scatter(ray primitive.Ray, hit *Hit, world *World) (optional.Optional[primitive.Ray], primitive.ScalarColor) {
-	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
-	reflectionRay := primitive.NewRay(
-		hit.Point.Add(reflectionDir.MulScalar(config.EPSILON)),
-		reflectionDir,
-	)
+var _ Material = (*Glass)(nil)
 
-	return optional.Some(reflectionRay), m.color
+type Glass struct {
+	color primitive.ScalarColor
 }
 
-func calcDepthBasedLightIntensity(light Light, distance float32) float32 {
-	intensityFactor := config.DEPTH_LIGHT_A_FACTOR*common.Pow(distance, 2) +
-		config.DEPTH_LIGHT_B_FACTOR*distance +
-		config.DEPTH_LIGHT_C_FACTOR
+func NewGlass(color primitive.ScalarColor) *Glass {
+	return &Glass{color: color}
+}
 
-	return light.Intensity / intensityFactor
+func (g *Glass) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
+	eta := glass_ior
+	if hit.FrontFace {
+		eta = common.Recip(eta)
+	}
+
+	cosTheta := min(ray.Direction().Negate().Dot(hit.Normal), 1.0)
+	sinTheta := float32(math.Sqrt(float64(1.0 - cosTheta*cosTheta)))
+	cannotRefract := eta*sinTheta > 1.0
+
+	var targetDir primitive.Vec3
+	doesReflect := cannotRefract || reflectanceSchlick(cosTheta, eta) > rand.Float32()
+	if doesReflect {
+		targetDir = ray.Direction().Reflect(hit.Normal)
+	} else {
+		targetDir = ray.Direction().Refract(hit.Normal, eta)
+	}
+
+	rayOrigin := hit.Point.Add(targetDir.MulScalar(config.EPSILON))
+	return primitive.NewRay(rayOrigin, targetDir), true, g.color
+}
+
+var _ Material = (*Emissive)(nil)
+
+type Emissive struct {
+	color primitive.ScalarColor
+}
+
+func NewEmissive(color primitive.ScalarColor) *Emissive {
+	return &Emissive{color: color}
+}
+
+func (e *Emissive) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
+	return primitive.Ray{}, false, e.color
+}
+
+func reflectanceSchlick(cosine, ior float32) float32 {
+	r0 := common.Pow((1.0-ior)/(1.0+ior), 2.0)
+	approx := common.Pow(r0+(1.0-r0)*(1.0-cosine), 5.0)
+	return approx
 }

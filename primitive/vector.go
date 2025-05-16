@@ -2,6 +2,7 @@ package primitive
 
 import (
 	"math"
+	"math/rand"
 )
 
 type Vec3 struct {
@@ -124,6 +125,19 @@ func (v Vec3) Reflect(normal Vec3) Vec3 {
 	return v.Sub(v.Mul(normal).MulScalar(2).Mul(normal))
 }
 
+func (v Vec3) Refract(normal Vec3, eta float32) Vec3 {
+	nDotI := v.Dot(normal)
+	k := 1.0 - eta*eta*(1.0-nDotI*nDotI) // reflection discriminant
+	if k < 0.0 {
+		return Vec3{}
+	}
+
+	scaledI := v.MulScalar(eta)
+	scaledN := normal.MulScalar(eta*nDotI + float32(math.Sqrt(float64(k))))
+
+	return scaledI.Add(scaledN.Negate())
+}
+
 type Vec2 struct {
 	X, Y float32
 }
@@ -140,4 +154,27 @@ func (v Vec2) MulScalar(t float32) Vec2 {
 		X: v.X * t,
 		Y: v.Y * t,
 	}
+}
+
+func RandomOnHemisphere(normal Vec3) Vec3 {
+	vecOnUnitSphere := RandomUnitVector()
+	if vecOnUnitSphere.Dot(normal) > 0.0 {
+		return vecOnUnitSphere
+	}
+
+	return vecOnUnitSphere.Negate()
+}
+
+func RandomUnitVector() Vec3 {
+	for {
+		p := Vec3{signedRand(), signedRand(), signedRand()}
+		lenSquared := p.LengthSquared()
+		if 1e-30 < lenSquared && lenSquared <= 1.0 {
+			return p.DivScalar(float32(math.Sqrt(float64(lenSquared))))
+		}
+	}
+}
+
+func signedRand() float32 {
+	return rand.Float32()*2.0 - 1.0
 }

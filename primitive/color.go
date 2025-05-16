@@ -24,49 +24,57 @@ func (sc ScalarColor) ToRGBA() color.RGBA {
 
 func (sc ScalarColor) Add(osc ScalarColor) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R + osc.R),
-		G: clamp(sc.G + osc.G),
-		B: clamp(sc.B + osc.B),
+		R: sc.R + osc.R,
+		G: sc.G + osc.G,
+		B: sc.B + osc.B,
 	}
 }
 
 func (sc ScalarColor) AddScalar(t float32) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R + t),
-		G: clamp(sc.G + t),
-		B: clamp(sc.B + t),
+		R: sc.R + t,
+		G: sc.G + t,
+		B: sc.B + t,
 	}
 }
 
 func (sc ScalarColor) Sub(osc ScalarColor) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R - osc.R),
-		G: clamp(sc.G - osc.G),
-		B: clamp(sc.B - osc.B),
+		R: sc.R - osc.R,
+		G: sc.G - osc.G,
+		B: sc.B - osc.B,
 	}
 }
 
 func (sc ScalarColor) Mul(osc ScalarColor) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R * osc.R),
-		G: clamp(sc.G * osc.G),
-		B: clamp(sc.B * osc.B),
+		R: sc.R * osc.R,
+		G: sc.G * osc.G,
+		B: sc.B * osc.B,
 	}
 }
 
 func (sc ScalarColor) MulScalar(t float32) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R * t),
-		G: clamp(sc.G * t),
-		B: clamp(sc.B * t),
+		R: sc.R * t,
+		G: sc.G * t,
+		B: sc.B * t,
 	}
 }
 
 func (sc ScalarColor) DivScalar(t float32) ScalarColor {
 	return ScalarColor{
-		R: clamp(sc.R / t),
-		G: clamp(sc.G / t),
-		B: clamp(sc.B / t),
+		R: sc.R / t,
+		G: sc.G / t,
+		B: sc.B / t,
+	}
+}
+
+func (sc ScalarColor) Clamp() ScalarColor {
+	return ScalarColor{
+		R: clamp(sc.R),
+		G: clamp(sc.G),
+		B: clamp(sc.B),
 	}
 }
 

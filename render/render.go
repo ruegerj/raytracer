@@ -40,11 +40,13 @@ func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
 	for x := range width {
 		color := primitive.BLACK
 
-		ray := world.Camera().RayFrom(x, y)
-		colorPart := trace(ray, config.MAX_DEPTH, world)
-		color = color.Add(colorPart)
+		for _ = range config.SAMPLES {
+			ray := world.Camera().RayFrom(x, y)
+			colorPart := trace(ray, config.MAX_DEPTH, world)
+			color = color.Add(colorPart)
+		}
 
-		line[x] = color.GammaCorrect()
+		line[x] = color.DivScalar(config.SAMPLES).GammaCorrect()
 	}
 
 	return line
@@ -63,12 +65,12 @@ func trace(ray primitive.Ray, depth float32, world *scene.World) primitive.Scala
 		return DEFAULT_COLOR
 	}
 
-	reflectedRay, color := hit.Material.Scatter(ray, hit, world)
-	if reflectedRay.IsEmpty() {
+	reflectedRay, hasRay, color := hit.Material.Scatter(ray, hit, world)
+	if !hasRay {
 		return color
 	}
 
-	nextColor := trace(reflectedRay.Get(), depth-1, world)
+	nextColor := trace(reflectedRay, depth-1, world)
 	return color.Mul(correctColorForDepth(nextColor, depth))
 }
 
