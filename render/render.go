@@ -10,6 +10,7 @@ import (
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
+	"github.com/schollz/progressbar/v3"
 )
 
 var DEFAULT_COLOR = primitive.ScalarColor{R: 0, G: 1, B: 1}
@@ -20,6 +21,8 @@ func Do(world *scene.World, img *image.RGBA) {
 	imageBuffer := make([][]primitive.ScalarColor, height)
 	log.Println(fmt.Sprintf("rendering image: %dx%d", img.Bounds().Dx(), img.Bounds().Dy()))
 
+	bar := progressbar.Default(int64(height))
+
 	var wg sync.WaitGroup
 	wg.Add(height)
 
@@ -27,6 +30,7 @@ func Do(world *scene.World, img *image.RGBA) {
 		go func() {
 			defer wg.Done()
 			imageBuffer[y] = renderLine(y, width, world)
+			bar.Add(1)
 		}()
 	}
 

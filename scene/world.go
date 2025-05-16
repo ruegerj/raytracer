@@ -1,7 +1,10 @@
 package scene
 
 import (
+	"log"
+
 	"github.com/ruegerj/raytracing/primitive"
+	"github.com/schollz/progressbar/v3"
 )
 
 type World struct {
@@ -11,10 +14,15 @@ type World struct {
 }
 
 func NewWorld(triangles []Triangle, lights []Light, camera Camera) *World {
+	spinner := progressbar.Default(-1, "building bvh tree")
+	bvh := NewBvh(triangles)
+	_ = spinner.Close()
+	log.Printf("bvh node count: %d\n", len(bvh.nodes))
+
 	return &World{
 		lights: lights,
 		camera: camera,
-		bvh:    NewBvh(triangles),
+		bvh:    bvh,
 	}
 }
 

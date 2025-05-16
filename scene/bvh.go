@@ -1,9 +1,6 @@
 package scene
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/ruegerj/raytracing/common"
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
@@ -27,9 +24,7 @@ func NewBvh(triangles []Triangle) *Bvh {
 		usedNodes: 1,
 	}
 
-	log.Println("start building bvh...")
 	bvh.Subdivide(ROOT_INDEX)
-	log.Println("bvh log count ", len(bvh.nodes))
 
 	return bvh
 }
@@ -161,7 +156,6 @@ func (b *Bvh) Subdivide(nodeIndex uint) {
 
 	leftCount := i - node.firstTri
 	if leftCount == 0 || leftCount == node.triCount {
-		fmt.Println("left full")
 		return
 	}
 
