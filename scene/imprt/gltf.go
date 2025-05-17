@@ -8,12 +8,17 @@ import (
 	"github.com/ruegerj/raytracing/config"
 	"github.com/ruegerj/raytracing/primitive"
 	"github.com/ruegerj/raytracing/scene"
+	"github.com/ruegerj/raytracing/scene/gltf-ext/transmission"
 )
 
 var defaultLight = scene.Light{
 	Origin:    primitive.Vec3{X: -2.5, Y: 3, Z: 2},
 	Color:     primitive.ScalarColor{R: 1, G: 1, B: 1},
 	Intensity: 1,
+}
+
+func InitGltfEtensions() {
+	gltf.RegisterExtension(transmission.ExtensionName, transmission.Unmarshal)
 }
 
 func FromGLTF(path string) (*scene.World, error) {
@@ -202,7 +207,8 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 			roughness = float32(*pbr.RoughnessFactor)
 		}
 
-		// TODO: transmission -> glass (extension gltf)
+		_, hasTransmission := m.Extensions[transmission.ExtensionName]
+
 		var material scene.Material
 		emissiveFactorVec := primitive.Vec3{
 			X: float32(m.EmissiveFactor[0]),
@@ -211,6 +217,8 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 		}
 		if emissiveFactorVec.LengthSquared() > 0.0 {
 			material = scene.NewEmissive(primitive.FromSlice(m.EmissiveFactor))
+		} else if hasTransmission {
+			material = scene.NewGlass(baseColor)
 		} else if metallicness < 1.0 {
 			material = scene.NewDiffuse(baseColor)
 		} else {
