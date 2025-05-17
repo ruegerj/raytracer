@@ -14,14 +14,16 @@ import (
 )
 
 var DEFAULT_COLOR = primitive.ScalarColor{R: 0, G: 1, B: 1}
+var renderBar *progressbar.ProgressBar
 
 func Do(world *scene.World, img *image.RGBA) {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
 	imageBuffer := make([][]primitive.ScalarColor, height)
 	log.Println(fmt.Sprintf("rendering image: %dx%d", img.Bounds().Dx(), img.Bounds().Dy()))
+	log.Println(fmt.Sprintf("samples per pixel: %d", config.SAMPLES))
 
-	bar := progressbar.Default(int64(height))
+	renderBar = progressbar.Default(int64(height * width))
 
 	var wg sync.WaitGroup
 	wg.Add(height)
@@ -30,7 +32,6 @@ func Do(world *scene.World, img *image.RGBA) {
 		go func() {
 			defer wg.Done()
 			imageBuffer[y] = renderLine(y, width, world)
-			bar.Add(1)
 		}()
 	}
 
@@ -51,6 +52,7 @@ func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
 		}
 
 		line[x] = color.DivScalar(config.SAMPLES).GammaCorrect()
+		renderBar.Add(1)
 	}
 
 	return line
