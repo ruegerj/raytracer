@@ -75,7 +75,7 @@ func (tr Triangle) Hits(r primitive.Ray) *Hit {
 
 func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 	pointVec := ray.Point(dist)
-	barycentric := tr.barycentricCoordinats(pointVec)
+	barycentric := tr.barycentricCoordinates(pointVec)
 
 	var uv *primitive.Vec2
 	if tr.V0.UV != nil && tr.V1.UV != nil && tr.V2.UV != nil {
@@ -110,7 +110,7 @@ func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 	}
 }
 
-func (tr Triangle) barycentricCoordinats(p primitive.Vec3) primitive.Vec3 {
+func (tr Triangle) barycentricCoordinates(p primitive.Vec3) primitive.Vec3 {
 	v0v1 := tr.V1.Point.Sub(tr.V0.Point)
 	v0v2 := tr.V2.Point.Sub(tr.V0.Point)
 	v0p := p.Sub(tr.V0.Point)
@@ -126,5 +126,5 @@ func (tr Triangle) barycentricCoordinats(p primitive.Vec3) primitive.Vec3 {
 	w := (d11*d32 - d12*d31) / denom
 	u := 1.0 - v - w
 
-	return primitive.Vec3{X: v, Y: w, Z: u}
+	return primitive.Vec3{X: u, Y: v, Z: w}
 }
