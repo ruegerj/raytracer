@@ -54,7 +54,7 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ra
 		}
 
 		lightIntensity := min(light.Intensity, 1.0) / float32(len(world.Lights()))
-		s := light.Origin.Sub(hit.Point)
+		s := light.Origin.Sub(hit.Point).Normalize()
 		diffuse := p.color.
 			MulScalar(max(s.Dot(hit.Normal), 0.0)).
 			MulScalar(common.Recip(lightDistance)).

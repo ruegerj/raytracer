@@ -92,7 +92,8 @@ func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 
 	normal := tr.V0.Normal.MulScalar(barycentric.X).
 		Add(tr.V1.Normal.MulScalar(barycentric.Y)).
-		Add(tr.V2.Normal.MulScalar(barycentric.Z))
+		Add(tr.V2.Normal.MulScalar(barycentric.Z)).
+		Normalize()
 
 	hitsFront := true
 	if ray.Direction().Dot(normal) > 0.0 {
@@ -111,20 +112,20 @@ func (tr Triangle) CreateHitFor(ray primitive.Ray, dist float32) *Hit {
 }
 
 func (tr Triangle) barycentricCoordinats(p primitive.Vec3) primitive.Vec3 {
-	v0v1 := tr.V1.Point.Sub(tr.V0.Point)
-	v0v2 := tr.V2.Point.Sub(tr.V0.Point)
-	v0p := p.Sub(tr.V0.Point)
+	v0 := tr.V1.Point.Sub(tr.V0.Point)
+	v1 := tr.V2.Point.Sub(tr.V0.Point)
+	v2 := p.Sub(tr.V0.Point)
 
-	d11 := v0v1.Dot(v0v1)
-	d12 := v0v1.Dot(v0v2)
-	d22 := v0v2.Dot(v0v2)
-	d31 := v0p.Dot(v0v1)
-	d32 := v0p.Dot(v0v2)
+	d00 := v0.Dot(v0)
+	d01 := v0.Dot(v1)
+	d11 := v1.Dot(v1)
+	v20 := v2.Dot(v0)
+	v21 := v2.Dot(v1)
 
-	denom := d11*d22 - d12*d12
-	v := (d22*d31 - d12*d32) / denom
-	w := (d11*d32 - d12*d31) / denom
+	denom := d00*d11 - d01*d01
+	v := (d11*v20 - d01*v21) / denom
+	w := (d00*v21 - d01*v20) / denom
 	u := 1.0 - v - w
 
-	return primitive.Vec3{X: v, Y: w, Z: u}
+	return primitive.Vec3{X: u, Y: v, Z: w}
 }
