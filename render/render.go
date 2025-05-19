@@ -45,7 +45,7 @@ func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
 		ray := world.Camera().RayFrom(x, y)
 		color := trace(ray, config.MAX_DEPTH, world)
 
-		line[x] = color
+		line[x] = color.GammaCorrect()
 		renderBar.Add(1)
 	}
 

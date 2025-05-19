@@ -31,7 +31,7 @@ func NewPhong(color primitive.ScalarColor, roughness float32) *Phong {
 
 func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
 	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
-	relfectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
+	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 
 	for _, light := range world.Lights() {
 		lightVec := light.Origin.Sub(hit.Point)
@@ -42,13 +42,18 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ra
 			hit.Point.Add(lightDir.MulScalar(config.EPSILON)),
 			lightDir,
 		)
+
+		var shadowDist float32 = common.F32_INF
 		shadowHit := world.Hits(shadowRay)
 		if shadowHit != nil {
+			shadowDist = shadowHit.Distance
+		}
+
+		if shadowDist < lightDistance {
 			continue
 		}
 
-		lightIntensity := calcDepthBasedLightIntensity(light, lightDistance)
-		// lightIntensity := min(light.Intensity, 1.0) / float32(len(world.Lights()))
+		lightIntensity := min(light.Intensity, 1.0) / float32(len(world.Lights()))
 		s := light.Origin.Sub(hit.Point)
 		diffuse := p.color.
 			MulScalar(max(s.Dot(hit.Normal), 0.0)).
@@ -59,7 +64,7 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ra
 		specularExp := (1.0 - p.roughness) * 128.0
 		specular := light.Color.
 			MulScalar(1.0 - p.roughness).
-			MulScalar(max(common.Pow(relfectionDir.Dot(lightDir), specularExp), 0.0))
+			MulScalar(max(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
 
 		newColor = newColor.Add(diffuse.Add(specular))
 	}
