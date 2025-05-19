@@ -122,7 +122,7 @@ func (v Vec3) Cross(ov Vec3) Vec3 {
 }
 
 func (v Vec3) Reflect(normal Vec3) Vec3 {
-	return v.Sub(v.Mul(normal).MulScalar(2).Mul(normal))
+	return v.Sub(normal.MulScalar(2 * v.Dot(normal)))
 }
 
 func (v Vec3) Refract(normal Vec3, eta float32) Vec3 {
