@@ -220,9 +220,9 @@ func loadMaterials(doc *gltf.Document) []scene.Material {
 		} else if hasTransmission {
 			material = scene.NewGlass(baseColor)
 		} else if metallicness < 1.0 {
-			material = scene.NewDiffuse(baseColor)
+			material = scene.NewPhong(baseColor, roughness)
 		} else {
-			material = scene.NewMetal(baseColor, roughness)
+			material = scene.NewMetal(baseColor)
 		}
 
 		materials[i] = material

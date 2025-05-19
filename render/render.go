@@ -21,7 +21,6 @@ func Do(world *scene.World, img *image.RGBA) {
 	height := img.Bounds().Dy()
 	imageBuffer := make([][]primitive.ScalarColor, height)
 	log.Println(fmt.Sprintf("rendering image: %dx%d", img.Bounds().Dx(), img.Bounds().Dy()))
-	log.Println(fmt.Sprintf("samples per pixel: %d", config.SAMPLES))
 
 	renderBar = progressbar.Default(int64(height * width))
 
@@ -43,15 +42,10 @@ func renderLine(y int, width int, world *scene.World) []primitive.ScalarColor {
 	line := make([]primitive.ScalarColor, width)
 
 	for x := range width {
-		color := primitive.BLACK
+		ray := world.Camera().RayFrom(x, y)
+		color := trace(ray, config.MAX_DEPTH, world)
 
-		for _ = range config.SAMPLES {
-			ray := world.Camera().RayFrom(x, y)
-			colorPart := trace(ray, config.MAX_DEPTH, world)
-			color = color.Add(colorPart)
-		}
-
-		line[x] = color.DivScalar(config.SAMPLES).GammaCorrect()
+		line[x] = color
 		renderBar.Add(1)
 	}
 
