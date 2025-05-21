@@ -31,7 +31,6 @@ func NewPhong(color primitive.ScalarColor, roughness float32) *Phong {
 
 func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ray, bool, primitive.ScalarColor) {
 	newColor := p.color.MulScalar(config.AMBIENT_FACTOR)
-	reflectionDir := ray.Direction().Reflect(hit.Normal).Normalize()
 
 	for _, light := range world.Lights() {
 		lightVec := light.Origin.Sub(hit.Point)
@@ -62,9 +61,10 @@ func (p *Phong) Scatter(ray primitive.Ray, hit *Hit, world *World) (primitive.Ra
 			MulScalar(lightIntensity)
 
 		specularExp := (1.0 - p.roughness) * 128.0
+		halfwayVec := lightDir.Add(ray.Direction().Negate()).Normalize()
 		specular := light.Color.
 			MulScalar(1.0 - p.roughness).
-			MulScalar(max(common.Pow(reflectionDir.Dot(lightDir), specularExp), 0.0))
+			MulScalar(max(common.Pow(halfwayVec.Dot(hit.Normal), specularExp), 0.0))
 
 		newColor = newColor.Add(diffuse.Add(specular))
 	}
